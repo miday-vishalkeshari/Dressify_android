@@ -1,14 +1,21 @@
 package com.example.dressify
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.ArrayAdapter
-import android.widget.GridView
-import android.widget.Spinner
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import android.provider.MediaStore
 import android.view.View
-import android.widget.EditText
-import android.widget.ScrollView
+import android.widget.*
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import android.graphics.Bitmap
+import java.io.ByteArrayOutputStream
+
 
 class RoleSettingActivity : AppCompatActivity() {
 
@@ -16,6 +23,7 @@ class RoleSettingActivity : AppCompatActivity() {
     private var selectedIconResId: Int? = null
     private lateinit var skinColourSpinner: Spinner
     private lateinit var scrollView: ScrollView
+    private lateinit var cameraLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,6 +76,60 @@ class RoleSettingActivity : AppCompatActivity() {
         heightEditText.setOnFocusChangeListener { v, hasFocus ->
             if (hasFocus) {
                 scrollToView(v)
+            }
+        }
+
+        // Initialize the camera launcher
+        cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val imageBitmap = result.data?.extras?.get("data") as? Bitmap
+                if (imageBitmap != null) {
+                    // Pass image to new activity
+                    val intent = Intent(this, PhotoPreviewActivity::class.java)
+                    val stream = ByteArrayOutputStream()
+                    imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                    val byteArray = stream.toByteArray()
+                    intent.putExtra("capturedImage", byteArray)
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this, "Failed to capture image", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
+        // Camera icon click listener
+        val cameraIcon = findViewById<ImageView>(R.id.cameraIcon)
+        cameraIcon.setOnClickListener {
+            // Check runtime camera permission
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 100)
+            } else {
+                openCamera()
+            }
+        }
+    }
+
+    private fun openCamera() {
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        if (cameraIntent.resolveActivity(packageManager) != null) {
+            cameraLauncher.launch(cameraIntent)
+        } else {
+            Toast.makeText(this, "No camera app found!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 100) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openCamera()
+            } else {
+                Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show()
             }
         }
     }
