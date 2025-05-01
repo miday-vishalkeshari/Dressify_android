@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.widget.ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <!-- Main layout container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#D0C8C8"
+        android:padding="0dp">
+
+        <!-- Main Image (60% of screen height) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/fullImageRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bottom_rounded_corners" />
+
+        <!-- Horizontal Scrollable matching -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/matchingRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:overScrollMode="never" />
+
+        <!-- Bottom Section for Image Details -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="4dp"
+            android:background="@drawable/top_rounded_corner"
+            android:layout_marginTop="16dp">
+
+            <!-- Title of Image -->
+            <TextView
+                android:id="@+id/imageTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Image Title"
+                android:textSize="18sp"
+                android:textColor="#000000"
+                android:padding="4dp"
+                android:gravity="center"/>
+
+            <!-- Description of Image -->
+            <TextView
+                android:id="@+id/imageDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="This is a sample description of the image"
+                android:textSize="14sp"
+                android:textColor="#777777"
+                android:padding="4dp"/>
+
+            <!-- Image Source/Details (Optional) -->
+            <TextView
+                android:id="@+id/imageSource"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Source: Unsplash"
+                android:textSize="12sp"
+                android:textColor="#0B2FF4"
+                android:padding="4dp"/>
+        </LinearLayout>
+    </LinearLayout>
+</android.widget.ScrollView>

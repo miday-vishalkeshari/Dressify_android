@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:background="?android:attr/selectableItemBackground"
+    android:clipToPadding="false"
+    tools:ignore="UseCompoundDrawables">
+
+    <!-- Profile Icon with rounded corner and shadow effect -->
+    <ImageView
+        android:id="@+id/spinnerProfileIcon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/dummy_person_icon1"
+        android:layout_marginEnd="8dp"
+        android:contentDescription="Profile Icon"
+        android:layout_gravity="center_vertical"
+        android:padding="4dp"/>
+
+    <!-- User name text with modern styling -->
+    <TextView
+        android:id="@+id/spinnerText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="User"
+        android:textSize="14sp"
+        android:textColor="#212121"
+        android:textStyle="bold"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:gravity="start|center_vertical"/>
+
+    <!-- Horizontal Divider -->
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp"
+        android:background="#BDBDBD" /> <!-- Gray divider color -->
+
+    <!-- Settings Icon -->
+    <ImageView
+        android:id="@+id/spinnerSettingsIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_settings"
+        android:contentDescription="Settings Icon"
+        android:layout_gravity="center_vertical"/>
+</LinearLayout>
