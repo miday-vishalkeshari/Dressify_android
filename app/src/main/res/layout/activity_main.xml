@@ -180,6 +180,9 @@
     </LinearLayout>
 
 
+
+
+
     <!-- Image Grid Section using RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/imageRecyclerView"

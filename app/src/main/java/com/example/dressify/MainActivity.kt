@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.AdapterView
+import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -45,21 +46,64 @@ class MainActivity : AppCompatActivity() {
         // Initialize Firestore
         db = FirebaseFirestore.getInstance()
 
-        // Initialize RecyclerView and the list
+        // Initialize RecyclerView and the image list
         recyclerView = findViewById(R.id.imageRecyclerView)
         recyclerView.layoutManager = GridLayoutManager(this, 2)
-        imageList = mutableListOf()
+        imageList = mutableListOf()  // <-- This should be MutableList<ImageItem>
 
-        // Initialize your spinners, buttons etc. here
+        // Initialize your spinners, buttons etc.
         setupFilter()
-
-        // Fetch image URLs from Firestore
-        fetchImageUrlsFromFirestore()
 
         // Initialize users spinners
         setupUserDropdown()
 
+        // Fetch image URLs from Firestore
+        fetchImageUrlsFromFirestore()
+
+        // Initialize dropdown row view
+        val dropdownRow = findViewById<View>(R.id.dropdownRow)
+
+        // Add scroll listener to hide/show dropdowns on scroll
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                // Handling dropdown visibility
+                val layoutManager = recyclerView.layoutManager as GridLayoutManager
+                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+
+                // Show the dropdown if the top is reached and it's not already visible
+                if (firstVisibleItemPosition == 0 && dropdownRow.visibility == View.GONE) {
+                    dropdownRow.visibility = View.VISIBLE
+                }
+
+                // Hide the dropdown when scrolling down past a certain threshold
+                if (dy > 50 && dropdownRow.visibility == View.VISIBLE) {
+                    dropdownRow.visibility = View.GONE
+                }
+                else if (dy < -100 ) {
+                    dropdownRow.visibility = View.VISIBLE
+                }
+
+                // Load more images if needed
+                if (dy > 0) {  // Scrolling down
+                    val visibleItemCount = layoutManager.childCount
+                    val totalItemCount = layoutManager.itemCount
+                    val pastVisibleItems = layoutManager.findFirstVisibleItemPosition()
+
+                    if (!isLoading && (visibleItemCount + pastVisibleItems) >= totalItemCount - 2) {
+                        loadMoreImages()
+                    }
+                }
+            }
+        })
+
+
+
+
+
     }
+
 
     private fun fetchImageUrlsFromFirestore() {
         imageList.clear()
@@ -154,8 +198,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupFilter() {
 
-
-
         // Dress Mood Multi-Choice Dropdown
         val moodOptions = arrayOf("Casual", "Formal", "Party", "Workout")
         val selectedMoods = mutableListOf<String>()
@@ -227,17 +269,24 @@ class MainActivity : AppCompatActivity() {
         val mediumImageAdapter = MediumImageAdapter(this, imageList)
         recyclerView.adapter = mediumImageAdapter
 
-        recyclerView.clearOnScrollListeners()
+        // Add scroll listener to manage load more trigger
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
+
+                Log.d("ScrollDebug", "onScrolled: dx = $dx, dy = $dy")
+
                 if (dy > 0) {  // Scrolling down
                     val layoutManager = recyclerView.layoutManager as GridLayoutManager
                     val visibleItemCount = layoutManager.childCount
                     val totalItemCount = layoutManager.itemCount
                     val pastVisibleItems = layoutManager.findFirstVisibleItemPosition()
 
-                    if (!isLoading && (visibleItemCount + pastVisibleItems) >= totalItemCount - 2) {
+                    Log.d("ScrollDebug", "Visible: $visibleItemCount, Total: $totalItemCount, Past: $pastVisibleItems")
+
+                    // Trigger loadMoreImages only when we are near the bottom
+                    if (!isLoading && (visibleItemCount + pastVisibleItems) >= totalItemCount - 4) {
+                        Log.d("ScrollDebug", "Trigger loadMoreImages()")
                         loadMoreImages()
                     }
                 }
@@ -246,8 +295,12 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+
     private fun loadMoreImages() {
-        if (isLoading) return  // Prevent multiple triggers
+        if (isLoading) return  // Prevent multiple triggers (flickering issue)
+
+        Log.d("LoadMore", "Loading more images...")
+
         isLoading = true
 
         val typesToFetch = if (selectedDressTypes.isEmpty()) allDressTypes.toList() else selectedDressTypes
@@ -259,7 +312,9 @@ class MainActivity : AppCompatActivity() {
 
             if (lastVisible == null) {
                 collectionsFetched++
-                if (collectionsFetched == typesToFetch.size) isLoading = false
+                if (collectionsFetched == typesToFetch.size) {
+                    isLoading = false
+                }
                 continue
             }
 
@@ -268,31 +323,43 @@ class MainActivity : AppCompatActivity() {
                 .limit(pageSize.toLong())
                 .get()
                 .addOnSuccessListener { documents ->
+                    Log.d("LoadMore", "Fetched more images from $collectionName")
+
                     if (documents.isEmpty) {
                         lastVisibleDocuments[collectionName] = null  // No more data
                     } else {
+                        val newItems = mutableListOf<ImageItem>()
                         for (document in documents) {
-                            val imageUrl = document.getString("image_url")
+                            val imageUrls = document.get("image_urls") as? List<*>
+                            val imageUrl = imageUrls?.getOrNull(0) as? String
                             if (imageUrl != null) {
-                                imageList.add(ImageItem(imageUrl, collectionName, document.id))
+                                newItems.add(ImageItem(imageUrl, collectionName, document.id))
                             }
-
                         }
+
+                        // Add all new items to the list
+                        imageList.addAll(newItems)
+
+                        // Update RecyclerView once after all items are added
+                        recyclerView.adapter?.notifyItemRangeInserted(imageList.size - newItems.size, newItems.size)
+
                         lastVisibleDocuments[collectionName] = documents.documents.last()
                     }
 
                     collectionsFetched++
                     if (collectionsFetched == typesToFetch.size) {
-                        recyclerView.adapter?.notifyDataSetChanged()
                         isLoading = false
                     }
                 }
                 .addOnFailureListener {
                     collectionsFetched++
-                    if (collectionsFetched == typesToFetch.size) isLoading = false
+                    if (collectionsFetched == typesToFetch.size) {
+                        isLoading = false
+                    }
                 }
         }
     }
+
 
 
 }

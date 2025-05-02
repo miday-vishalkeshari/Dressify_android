@@ -111,6 +111,7 @@
         android:text="Auto Detect Color"
         android:layout_gravity="center"
         android:layout_marginTop="16dp"
+        android:visibility="gone"
         android:background="@drawable/all_rounded_corners"
         android:textColor="#FFFFFF"
         android:elevation="4dp"
