@@ -3,6 +3,7 @@ package com.example.dressify
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.MotionEvent
 import android.widget.ImageView
@@ -11,6 +12,8 @@ import android.widget.Toast
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.get
+import android.graphics.Matrix
+
 
 class PhotoPreviewActivity : AppCompatActivity() {
 
@@ -34,33 +37,47 @@ class PhotoPreviewActivity : AppCompatActivity() {
             val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
             imageView.setImageBitmap(bitmap)
 
-            imageView.setOnTouchListener { _, event ->
+            imageView.setOnTouchListener { v, event ->
                 if (event.action == MotionEvent.ACTION_DOWN) {
-                    val imageViewBitmap = (imageView.drawable as android.graphics.drawable.BitmapDrawable).bitmap
+                    val drawable = imageView.drawable ?: return@setOnTouchListener true
+                    val bitmap = (drawable as android.graphics.drawable.BitmapDrawable).bitmap
 
-                    val scaleX = imageViewBitmap.width.toFloat() / imageView.width
-                    val scaleY = imageViewBitmap.height.toFloat() / imageView.height
+                    val imageMatrix = imageView.imageMatrix
+                    val values = FloatArray(9)
+                    imageMatrix.getValues(values)
 
-                    val x = (event.x * scaleX).toInt()
-                    val y = (event.y * scaleY).toInt()
+                    val scaleX = values[Matrix.MSCALE_X]
+                    val scaleY = values[Matrix.MSCALE_Y]
+                    val transX = values[Matrix.MTRANS_X]
+                    val transY = values[Matrix.MTRANS_Y]
 
-                    if (x in 0 until imageViewBitmap.width && y in 0 until imageViewBitmap.height) {
-                        val pixelColor = imageViewBitmap[x, y]
+                    val touchX = (event.x - transX) / scaleX
+                    val touchY = (event.y - transY) / scaleY
+
+                    val x = touchX.toInt()
+                    val y = touchY.toInt()
+
+                    if (x in 0 until bitmap.width && y in 0 until bitmap.height) {
+                        val pixelColor = bitmap.getPixel(x, y)
                         val hexColor = String.format("#%06X", 0xFFFFFF and pixelColor)
-
-                        Toast.makeText(this, "Color: $hexColor", Toast.LENGTH_SHORT).show()
 
                         // Move and show marker
                         touchMarker.translationX = event.x - touchMarker.width / 2
                         touchMarker.translationY = event.y - touchMarker.height / 2
                         touchMarker.visibility = ImageView.VISIBLE
 
-                        // Update color preview tile
-                        selectedColorView.setBackgroundColor(pixelColor)
+                        // Set color to circular view with border
+                        val drawableCircle = GradientDrawable().apply {
+                            shape = GradientDrawable.OVAL
+                            setColor(pixelColor)
+                            setStroke(4, Color.parseColor("#DDDDDD"))
+                        }
+                        selectedColorView.background = drawableCircle
                     }
                 }
                 true
             }
+
         }
     }
 }

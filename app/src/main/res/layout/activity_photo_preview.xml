@@ -28,16 +28,17 @@
             android:orientation="vertical">
 
             <!-- Instruction Text (Vertical alignment on top) -->
+
             <TextView
                 android:id="@+id/instructionText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tap anywhere to pick a color"
-                android:textSize="16sp"
-                android:textColor="#212121"
-                android:textStyle="bold"
                 android:layout_marginBottom="8dp"
-                android:gravity="center" />
+                android:gravity="center"
+                android:text="Tap anywhere to pick a color"
+                android:textColor="#212121"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -61,8 +62,9 @@
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_marginStart="12dp"
-                android:background="@drawable/circle_background"
+                android:background="@drawable/circle_shape"
                 android:elevation="4dp" />
+
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
@@ -109,7 +111,7 @@
         android:text="Auto Detect Color"
         android:layout_gravity="center"
         android:layout_marginTop="16dp"
-        android:background="#8049E6"
+        android:background="@drawable/all_rounded_corners"
         android:textColor="#FFFFFF"
         android:elevation="4dp"
         android:padding="12dp"

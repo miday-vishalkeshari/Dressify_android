@@ -22,6 +22,7 @@ class RoleSettingActivity : AppCompatActivity() {
     private lateinit var iconGridView: GridView
     private var selectedIconResId: Int? = null
     private lateinit var skinColourSpinner: Spinner
+    private lateinit var skinTypeSpinner: Spinner
     private lateinit var scrollView: ScrollView
     private lateinit var cameraLauncher: ActivityResultLauncher<Intent>
 
@@ -50,12 +51,38 @@ class RoleSettingActivity : AppCompatActivity() {
             Toast.makeText(this, "Selected icon: $selectedIconResId", Toast.LENGTH_SHORT).show()
         }
 
-        // Spinner setup
+
         skinColourSpinner = findViewById(R.id.skinColourSpinner)
+        // Skin colours and their corresponding hex values
         val skinColours = listOf("Fair", "Wheatish", "Dusky", "Dark")
-        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, skinColours)
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val skinColourHexCodes = listOf(
+            0xFFFFE0BD.toInt(), // Fair
+            0xFFEECD9C.toInt(), // Wheatish
+            0xFFBE8C63.toInt(), // Dusky
+            0xFF8D5524.toInt()  // Dark
+        )
+
+        // Initialize skin type spinner
+        skinTypeSpinner = findViewById(R.id.skinTypeSpinner)
+        // Skin types list
+        val skinTypes = listOf("Pearl", "Apple", "Rectangle")
+
+        // Corresponding icons (drawable resource IDs)
+        val skinTypeIcons = listOf(
+            R.drawable.ic_pearl, // Replace with actual drawable resource IDs
+            R.drawable.ic_apple,
+            R.drawable.ic_rectangle
+        )
+
+        // Use the custom adapter for the spinner
+        val skinTypeSpinnerAdapter = SkinTypeAdapter(this, skinTypes,skinTypeIcons)
+        skinTypeSpinner.adapter = skinTypeSpinnerAdapter
+
+
+
+        val spinnerAdapter = SkinColourAdapter(this, skinColours, skinColourHexCodes)
         skinColourSpinner.adapter = spinnerAdapter
+
 
         // Focus listeners on EditTexts
         val nameEditText = findViewById<EditText>(R.id.editTextName)
@@ -101,8 +128,8 @@ class RoleSettingActivity : AppCompatActivity() {
 
 
         // Camera icon click listener
-        val cameraIcon = findViewById<ImageView>(R.id.cameraIcon)
-        cameraIcon.setOnClickListener {
+        val cameraIconSkinColour = findViewById<ImageView>(R.id.cameraIconSkinColour)
+        cameraIconSkinColour.setOnClickListener {
             // Check runtime camera permission
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED
