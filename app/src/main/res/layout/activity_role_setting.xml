@@ -202,6 +202,7 @@
                         android:src="@drawable/ic_camera"
                         android:layout_marginStart="16dp"
                         android:layout_width="42dp"
+                        android:visibility="gone"
                         android:layout_height="42dp" />
                 </LinearLayout>
 

@@ -46,10 +46,15 @@ class RoleSettingActivity : AppCompatActivity() {
         val adapter = IconGridAdapter(this, iconList)
         iconGridView.adapter = adapter
 
+        // By default select first icon
+        selectedIconResId = iconList[0]
+
         iconGridView.setOnItemClickListener { _, _, position, _ ->
             selectedIconResId = iconList[position]
-            Toast.makeText(this, "Selected icon: $selectedIconResId", Toast.LENGTH_SHORT).show()
+            adapter.updateSelectedPosition(position)
+            //Toast.makeText(this, "Selected icon: $selectedIconResId", Toast.LENGTH_SHORT).show()
         }
+
 
 
         skinColourSpinner = findViewById(R.id.skinColourSpinner)
