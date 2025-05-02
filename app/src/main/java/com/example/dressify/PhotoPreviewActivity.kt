@@ -10,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.get
 
 class PhotoPreviewActivity : AppCompatActivity() {
 
@@ -44,7 +45,7 @@ class PhotoPreviewActivity : AppCompatActivity() {
                     val y = (event.y * scaleY).toInt()
 
                     if (x in 0 until imageViewBitmap.width && y in 0 until imageViewBitmap.height) {
-                        val pixelColor = imageViewBitmap.getPixel(x, y)
+                        val pixelColor = imageViewBitmap[x, y]
                         val hexColor = String.format("#%06X", 0xFFFFFF and pixelColor)
 
                         Toast.makeText(this, "Color: $hexColor", Toast.LENGTH_SHORT).show()

@@ -13,6 +13,9 @@
     android:clipToPadding="false"
     tools:ignore="UseCompoundDrawables">
 
+
+
+
     <!-- Profile Icon with rounded corner and shadow effect -->
     <ImageView
         android:id="@+id/spinnerProfileIcon"
@@ -31,7 +34,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="User"
-        android:textSize="14sp"
+        android:textSize="18sp"
         android:textColor="#212121"
         android:textStyle="bold"
         android:ellipsize="end"
@@ -40,11 +43,13 @@
 
     <!-- Horizontal Divider -->
     <View
+        android:id="@+id/spinnerDivider"
         android:layout_width="1dp"
         android:layout_height="match_parent"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="16dp"
         android:background="#BDBDBD" /> <!-- Gray divider color -->
+
 
     <!-- Settings Icon -->
     <ImageView
@@ -54,4 +59,7 @@
         android:src="@drawable/ic_settings"
         android:contentDescription="Settings Icon"
         android:layout_gravity="center_vertical"/>
+
+
+
 </LinearLayout>

@@ -32,11 +32,13 @@ class UserRoleAdapter(
         val profileIcon: ImageView = view.findViewById(R.id.spinnerProfileIcon)
         val textView: TextView = view.findViewById(R.id.spinnerText)
         val settingsIcon: ImageView = view.findViewById(R.id.spinnerSettingsIcon)
+        val divider: View = view.findViewById(R.id.spinnerDivider)
 
         // Set the correct icon for the user based on the position
         profileIcon.setImageResource(iconResIds[position])
         textView.text = roles[position]
         settingsIcon.visibility = View.GONE   // Hide settings icon in selected item
+        divider.visibility = View.GONE
 
         // Reduce margins to minimize extra space
         val profileIconLayoutParams = profileIcon.layoutParams as ViewGroup.MarginLayoutParams
@@ -58,6 +60,7 @@ class UserRoleAdapter(
         val profileIcon: ImageView = view.findViewById(R.id.spinnerProfileIcon)
         val textView: TextView = view.findViewById(R.id.spinnerText)
         val settingsIcon: ImageView = view.findViewById(R.id.spinnerSettingsIcon)
+        val divider: View = view.findViewById(R.id.spinnerDivider)
 
 
 
@@ -72,6 +75,8 @@ class UserRoleAdapter(
         textView.setPadding(8, 8, 8, 8)
 
         settingsIcon.visibility = View.VISIBLE
+        divider.visibility = View.VISIBLE
+
         settingsIcon.layoutParams.height = 120
         settingsIcon.layoutParams.width = 120
         settingsIcon.scaleType = ImageView.ScaleType.CENTER_INSIDE
