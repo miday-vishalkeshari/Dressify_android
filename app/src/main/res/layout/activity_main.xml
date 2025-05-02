@@ -97,6 +97,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:background="@drawable/dropdown_background"
         android:layout_marginTop="8dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
@@ -111,21 +112,23 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
+            android:background="@android:color/transparent"
             android:layout_marginEnd="4dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Dress Mood:"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:gravity="center_horizontal" />
 
             <TextView
                 android:id="@+id/dressMoodDropdown"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Select Mood"
-                android:background="@drawable/edit_text_bg"
                 android:padding="12dp"
+                android:background="@drawable/edit_text_bg"
                 android:drawableEnd="@drawable/arrow_drop_down" />
         </LinearLayout>
 
@@ -135,22 +138,24 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
+            android:background="@android:color/transparent"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Dress Type:"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:gravity="center_horizontal" />
 
             <TextView
                 android:id="@+id/dressTypeDropdown"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:hint="Select Type"
-                android:background="@drawable/edit_text_bg"
                 android:padding="12dp"
+                android:background="@drawable/edit_text_bg"
                 android:drawableEnd="@drawable/arrow_drop_down" />
         </LinearLayout>
 
@@ -160,13 +165,15 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
+            android:background="@android:color/transparent"
             android:layout_marginStart="4dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Price Range:"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:gravity="center_horizontal" />
 
             <TextView
                 android:id="@+id/priceRangeDropdown"
@@ -194,5 +201,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="8dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

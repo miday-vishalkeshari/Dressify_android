@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var imageList: MutableList<ImageItem>
     private val selectedDressTypes = mutableListOf<String>()
+    private var lastLoadTime = 0L
     private val allDressTypes = arrayOf(
         "Tshirts",
         "Casual_Shirts",
@@ -64,29 +65,40 @@ class MainActivity : AppCompatActivity() {
         val dropdownRow = findViewById<View>(R.id.dropdownRow)
 
         // Add scroll listener to hide/show dropdowns on scroll
+        // Declare this above/on class level (or before adding listener)
+        var isDropdownVisible = true  // keep this outside
+
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                // Handling dropdown visibility
                 val layoutManager = recyclerView.layoutManager as GridLayoutManager
                 val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
 
-                // Show the dropdown if the top is reached and it's not already visible
-                if (firstVisibleItemPosition == 0 && dropdownRow.visibility == View.GONE) {
-                    dropdownRow.visibility = View.VISIBLE
-                }
+                // Handle dropdown visibility with animation
+                if (dy > 50 && isDropdownVisible) {
+                    dropdownRow.animate()
+                        .alpha(0f)
+                        .translationY(-dropdownRow.height.toFloat())
+                        .setDuration(150)  // 300ms for smooth fade-slide up
+                        .withEndAction {
+                            dropdownRow.visibility = View.GONE
+                        }
+                        .start()
+                    isDropdownVisible = false
 
-                // Hide the dropdown when scrolling down past a certain threshold
-                if (dy > 50 && dropdownRow.visibility == View.VISIBLE) {
-                    dropdownRow.visibility = View.GONE
-                }
-                else if (dy < -100 ) {
+                } else if (firstVisibleItemPosition == 0 && !isDropdownVisible) {
                     dropdownRow.visibility = View.VISIBLE
+                    dropdownRow.animate()
+                        .alpha(1f)
+                        .translationY(0f)
+                        .setDuration(150)  // 300ms for smooth fade-slide down
+                        .start()
+                    isDropdownVisible = true
                 }
 
                 // Load more images if needed
-                if (dy > 0) {  // Scrolling down
+                if (dy > 20) { // Scrolling down
                     val visibleItemCount = layoutManager.childCount
                     val totalItemCount = layoutManager.itemCount
                     val pastVisibleItems = layoutManager.findFirstVisibleItemPosition()
@@ -97,6 +109,8 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+
+
 
 
 
@@ -265,6 +279,7 @@ class MainActivity : AppCompatActivity() {
 
 
 
+
     private fun setupAdapter() {
         val mediumImageAdapter = MediumImageAdapter(this, imageList)
         recyclerView.adapter = mediumImageAdapter
@@ -274,7 +289,13 @@ class MainActivity : AppCompatActivity() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                Log.d("ScrollDebug", "onScrolled: dx = $dx, dy = $dy")
+                val currentTime = System.currentTimeMillis()
+                // Only allow trigger after 300ms
+                if (currentTime - lastLoadTime < 100) {
+                    lastLoadTime = currentTime
+                    return
+                }
+                lastLoadTime = currentTime
 
                 if (dy > 0) {  // Scrolling down
                     val layoutManager = recyclerView.layoutManager as GridLayoutManager
@@ -282,17 +303,15 @@ class MainActivity : AppCompatActivity() {
                     val totalItemCount = layoutManager.itemCount
                     val pastVisibleItems = layoutManager.findFirstVisibleItemPosition()
 
-                    Log.d("ScrollDebug", "Visible: $visibleItemCount, Total: $totalItemCount, Past: $pastVisibleItems")
-
                     // Trigger loadMoreImages only when we are near the bottom
-                    if (!isLoading && (visibleItemCount + pastVisibleItems) >= totalItemCount - 4) {
-                        Log.d("ScrollDebug", "Trigger loadMoreImages()")
+                    if (!isLoading && (visibleItemCount + pastVisibleItems) >= totalItemCount - 5) {
                         loadMoreImages()
                     }
                 }
             }
         })
     }
+
 
 
 
