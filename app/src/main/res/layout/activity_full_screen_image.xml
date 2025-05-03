@@ -6,6 +6,5 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/fullScreenRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal" /> <!-- Make sure orientation is horizontal -->
+        android:layout_height="match_parent"/> <!-- Make sure orientation is horizontal -->
 </FrameLayout>

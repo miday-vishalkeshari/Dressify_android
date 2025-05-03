@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.DocumentSnapshot
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import android.os.Handler
+import android.os.Looper
 
 
 class MainActivity : AppCompatActivity() {
@@ -35,6 +37,7 @@ class MainActivity : AppCompatActivity() {
         "Trousers",
         "Pants"
     )
+    private var isBackPressedOnce = false
 
     private val lastVisibleDocuments = mutableMapOf<String, DocumentSnapshot?>()
     private var isLoading = false
@@ -445,5 +448,27 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onBackPressed() {
+        if (isTaskRoot) {
+            if (isBackPressedOnce) {
+                // Exit the app on the second back press
+                super.onBackPressed()
+                return
+            }
+
+            // Refresh content on the first back press
+            isBackPressedOnce = true
+            refreshContent() // Trigger the same action as SwipeRefreshLayout or appSection click
+            Toast.makeText(this, "Press back again to exit", Toast.LENGTH_SHORT).show()
+
+            // Reset the flag after 2 seconds
+            Handler(Looper.getMainLooper()).postDelayed({
+                isBackPressedOnce = false
+            }, 2000)
+        } else {
+            // Normal back behavior if other activities are in the stack
+            super.onBackPressed()
+        }
+    }
 
 }
