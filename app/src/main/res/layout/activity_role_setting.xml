@@ -199,7 +199,7 @@
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:layout_marginStart="16dp"
-                        android:src="@drawable/bodytypeinfoicon"
+                        android:src="@drawable/body_type_info_icon"
                         android:contentDescription="View images"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:padding="4dp" />

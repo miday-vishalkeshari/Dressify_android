@@ -122,6 +122,78 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun setupUserDropdown() {
+        // Get the spinner reference from the layout
+        val userDropdown: Spinner = findViewById(R.id.userDropdown)
+
+        // Check if spinner is null for debugging (optional)
+        if (userDropdown == null) {
+            Log.e("MainActivity", "Spinner not found in layout")
+        } else {
+            Log.d("MainActivity", "Spinner found: $userDropdown")
+        }
+
+        // Create a list of user roles and corresponding icons
+        val userRoles = listOf("User1", "User2", "User3")
+        val userIcons = listOf(
+            R.drawable.dummy_person_icon1,  // Icon for User1
+            R.drawable.dummy_person_icon2,  // Icon for User2
+            R.drawable.dummy_person_icon1   // Icon for User3
+        )
+
+        // Create the adapter for the spinner
+        val userAdapter = UserRoleAdapter(this, userRoles, userIcons)
+
+        // Attach the spinner reference to the adapter before setting it as the adapter
+        userAdapter.attachSpinner(userDropdown)  // Attach spinner reference first
+
+        // Set the adapter to the spinner
+        userDropdown.adapter = userAdapter
+
+        // Set listener for the settings icon click
+        userAdapter.setSettingsIconClickListener { position ->
+            // Perform action when settings icon is clicked
+            Toast.makeText(
+                this@MainActivity,
+                "Settings icon clicked for: ${userRoles[position]}",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            // Open settings activity
+            val intent = Intent(this@MainActivity, RoleSettingActivity::class.java)
+            startActivity(intent)
+
+            // Close the spinner dropdown by triggering a click action
+            userDropdown.post {
+                userDropdown.performClick()  // This should trigger the spinner to close
+            }
+        }
+
+        var isFirstSelection = true
+
+        // Set the item selected listener for the spinner
+        userDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?, view: View?, position: Int, id: Long
+            ) {
+                if (isFirstSelection) {
+                    isFirstSelection = false
+                    return
+                }
+                val selectedRole = userRoles[position]
+                Toast.makeText(this@MainActivity, "Selected: $selectedRole", Toast.LENGTH_SHORT)
+                    .show()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+    }
+
+
+
+
+
+
     private fun refreshContent() {
         swipeRefreshLayout.isRefreshing = true
 
@@ -191,50 +263,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun setupUserDropdown() {
-        val userDropdown: Spinner = findViewById(R.id.userDropdown)
-
-        val userRoles = listOf("User1", "User2", "User3")
-        // Create a list of icons corresponding to each user
-        val userIcons = listOf(
-            R.drawable.dummy_person_icon1,  // Icon for User1
-            R.drawable.dummy_person_icon2,  // Icon for User2
-            R.drawable.dummy_person_icon1   // Icon for User3
-        )
-
-        val userAdapter = UserRoleAdapter(this, userRoles, userIcons)
-        userDropdown.adapter = userAdapter
-
-        // Set listener for the settings icon click
-        userAdapter.setSettingsIconClickListener { position ->
-            // Perform action when settings icon is clicked
-            Toast.makeText(
-                this@MainActivity,
-                "Settings icon clicked for: ${userRoles[position]}",
-                Toast.LENGTH_SHORT
-            ).show()
-            val intent = Intent(this@MainActivity, RoleSettingActivity::class.java)
-            startActivity(intent)
-        }
-
-        var isFirstSelection = true
-
-        userDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>?, view: View?, position: Int, id: Long
-            ) {
-                if (isFirstSelection) {
-                    isFirstSelection = false
-                    return
-                }
-                val selectedRole = userRoles[position]
-                Toast.makeText(this@MainActivity, "Selected: $selectedRole", Toast.LENGTH_SHORT)
-                    .show()
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-    }
 
 
     private fun setupFilter() {
