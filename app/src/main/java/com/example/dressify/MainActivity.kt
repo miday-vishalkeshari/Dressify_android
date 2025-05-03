@@ -350,7 +350,7 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun setupAdapter() {
-        val mediumImageAdapter = MediumImageAdapter(this, imageList)
+        val mediumImageAdapter = MediumImageAdapter(this, imageList, "MainActivity")
         recyclerView.adapter = mediumImageAdapter
 
         // Add scroll listener to manage load more trigger

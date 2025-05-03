@@ -10,14 +10,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
 
-
 class MediumImageAdapter(
     private val context: Context,
-    private val imageItemList: List<ImageItem>
+    private val imageItemList: List<ImageItem>,
+    private val activityType: String // Pass activity type as a string
 ) : RecyclerView.Adapter<MediumImageAdapter.ImageViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
-        val view = LayoutInflater.from(context).inflate(R.layout.medium_item_image, parent, false)
+        val layoutId = if (activityType == "MainActivity") {
+            R.layout.medium_item_image_mainactivity // Layout for MainActivity
+        } else {
+            R.layout.medium_item_image_imagedetailactivity // Layout for ImageDetailActivity
+        }
+        val view = LayoutInflater.from(context).inflate(layoutId, parent, false)
         return ImageViewHolder(view)
     }
 
@@ -27,6 +32,8 @@ class MediumImageAdapter(
         Glide.with(context)
             .load(currentItem.imageUrl)
             .into(holder.imageView)
+
+
 
         holder.itemView.setOnClickListener {
             val intent = Intent(context, ImageDetailActivity::class.java)

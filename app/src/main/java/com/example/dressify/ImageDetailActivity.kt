@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
@@ -142,8 +143,8 @@ class ImageDetailActivity : AppCompatActivity() {
     private fun setupMatchingAdapter(matchingItems: List<ImageItem>) {
         Log.d("ImageDetailActivity", "Setting up matching adapter with ${matchingItems.size} items")
 
-        matchingRecyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)
-        matchingRecyclerView.adapter = MediumImageAdapter(this, matchingItems)
+        matchingRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        matchingRecyclerView.adapter = MediumImageAdapter(this, matchingItems, "MediumImageAdapter")
     }
 
 }
