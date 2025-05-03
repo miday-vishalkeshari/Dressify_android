@@ -1,6 +1,8 @@
 package com.example.dressify
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -43,10 +45,16 @@ class BodyTypeAdapter(
             val previousPosition = selectedPosition
             selectedPosition = holder.adapterPosition
 
-            // Refresh old and new positions to update selection state
             notifyItemChanged(previousPosition)
             notifyItemChanged(selectedPosition)
+
+            // Return result immediately to RoleSettingActivity
+            val resultIntent = Intent()
+            resultIntent.putExtra("selectedBodyTypeIndex", selectedPosition)
+            (context as Activity).setResult(Activity.RESULT_OK, resultIntent)
+            (context as Activity).finish()
         }
+
     }
 
     fun getSelectedItem(): Int? {

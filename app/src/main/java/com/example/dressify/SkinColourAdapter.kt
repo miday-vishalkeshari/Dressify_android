@@ -38,4 +38,9 @@ class SkinColourAdapter(
 
         return view
     }
+
+    // ✅ Add this function here:
+    fun getPositionForValue(value: String): Int {
+        return colours.indexOf(value)
+    }
 }

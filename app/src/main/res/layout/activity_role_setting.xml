@@ -165,8 +165,8 @@
                         android:id="@+id/cameraIconSkinColour"
                         android:src="@drawable/ic_camera"
                         android:layout_marginStart="16dp"
-                        android:layout_width="42dp"
-                        android:layout_height="42dp" />
+                        android:layout_width="48dp"
+                        android:layout_height="48dp" />
                 </LinearLayout>
 
 
@@ -196,8 +196,8 @@
                         android:padding="4dp" />
                     <ImageView
                         android:id="@+id/bodyTypeInfoIcon"
-                        android:layout_width="42dp"
-                        android:layout_height="42dp"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
                         android:layout_marginStart="16dp"
                         android:src="@drawable/bodytypeinfoicon"
                         android:contentDescription="View images"

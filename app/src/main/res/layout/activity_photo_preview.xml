@@ -65,7 +65,37 @@
                 android:background="@drawable/circle_shape"
                 android:elevation="4dp" />
 
+
+
+
             </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/colorCatagoryLabelText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your color Catagory"
+                android:textSize="12sp"
+                android:textColor="#555555"
+                android:visibility="gone"
+                android:layout_marginTop="4dp" />
+            <!-- Skin color type label -->
+            <TextView
+                android:id="@+id/skinTypeLabelText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Skin Type"
+                android:textSize="12sp"
+                android:textColor="#333333"
+                android:layout_marginTop="4dp"/>
+
+        </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
@@ -102,6 +132,20 @@
             android:translationY="0dp"
             android:elevation="6dp" />
     </FrameLayout>
+
+    <!-- Button for Auto-detecting color -->
+    <Button
+        android:id="@+id/saveColorButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save Skin Color"
+        android:layout_gravity="center"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/all_rounded_corners"
+        android:textColor="#FFFFFF"
+        android:elevation="4dp"
+        android:padding="12dp"
+        android:layout_marginBottom="24dp" />
 
     <!-- Button for Auto-detecting color -->
     <Button

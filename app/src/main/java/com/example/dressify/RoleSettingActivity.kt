@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
@@ -13,9 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import android.graphics.Bitmap
 import java.io.ByteArrayOutputStream
-
 
 class RoleSettingActivity : AppCompatActivity() {
 
@@ -25,12 +24,12 @@ class RoleSettingActivity : AppCompatActivity() {
     private lateinit var skinTypeSpinner: Spinner
     private lateinit var scrollView: ScrollView
     private lateinit var cameraLauncher: ActivityResultLauncher<Intent>
+    private lateinit var photoPreviewLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_role_setting)
 
-        // ScrollView reference
         scrollView = findViewById(R.id.roleSettingScrollView)
 
         // Icon Grid setup
@@ -45,97 +44,66 @@ class RoleSettingActivity : AppCompatActivity() {
         )
         val adapter = IconGridAdapter(this, iconList)
         iconGridView.adapter = adapter
-
-        // By default select first icon
         selectedIconResId = iconList[0]
 
         iconGridView.setOnItemClickListener { _, _, position, _ ->
             selectedIconResId = iconList[position]
             adapter.updateSelectedPosition(position)
-            //Toast.makeText(this, "Selected icon: $selectedIconResId", Toast.LENGTH_SHORT).show()
         }
 
-
-
+        // Skin colour spinner
         skinColourSpinner = findViewById(R.id.skinColourSpinner)
-        // Skin colours and their corresponding hex values
-        val skinColours = listOf("Fair", "Wheatish", "Dusky", "Dark")
+        val skinColours = listOf(
+            "Very Fair", "Fair", "Medium Fair", "Medium", "Medium Dark", "Dark", "Very Dark"
+        )
         val skinColourHexCodes = listOf(
-            0xFFFFE0BD.toInt(), // Fair
-            0xFFEECD9C.toInt(), // Wheatish
-            0xFFBE8C63.toInt(), // Dusky
-            0xFF8D5524.toInt()  // Dark
+            0xFFFFE0BD.toInt(), 0xFFEECD9C.toInt(), 0xFFCEAA88.toInt(), 0xFFBE8C63.toInt(),
+            0xFF8D5524.toInt(), 0xFF7D451A.toInt(), 0xFF5C3317.toInt()
         )
+        skinColourSpinner.adapter = SkinColourAdapter(this, skinColours, skinColourHexCodes)
 
-        // Initialize skin type spinner
-        skinTypeSpinner = findViewById(R.id.skinTypeSpinner)
-        // Skin types list
-        val skinTypes = listOf("Pearl", "Apple", "Rectangle")
-
-        // Corresponding icons (drawable resource IDs)
-        val skinTypeIcons = listOf(
-            R.drawable.ic_pearl, // Replace with actual drawable resource IDs
-            R.drawable.ic_apple,
-            R.drawable.ic_rectangle
-        )
-
-        // Use the custom adapter for the spinner
-        val skinTypeSpinnerAdapter = SkinTypeAdapter(this, skinTypes,skinTypeIcons)
-        skinTypeSpinner.adapter = skinTypeSpinnerAdapter
-
-
-
-        val spinnerAdapter = SkinColourAdapter(this, skinColours, skinColourHexCodes)
-        skinColourSpinner.adapter = spinnerAdapter
-
-
-        // Focus listeners on EditTexts
-        val nameEditText = findViewById<EditText>(R.id.editTextName)
-        nameEditText.setOnFocusChangeListener { v, hasFocus ->
-            if (hasFocus) {
-                scrollToView(v)
+        // Photo preview result launcher
+        photoPreviewLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val selectedSkinColor = result.data?.getStringExtra("selectedSkinColor")
+                if (selectedSkinColor != null) {
+                    val position = skinColours.indexOf(selectedSkinColor)
+                    if (position != -1) {
+                        skinColourSpinner.setSelection(position)
+                    }
+                }
             }
         }
 
-        val ageEditText = findViewById<EditText>(R.id.editTextAge)
-        ageEditText.setOnFocusChangeListener { v, hasFocus ->
-            if (hasFocus) {
-                scrollToView(v)
+        // Focus auto-scroll for EditTexts
+        listOf(
+            findViewById<EditText>(R.id.editTextName),
+            findViewById<EditText>(R.id.editTextAge),
+            findViewById<EditText>(R.id.editTextHeight)
+        ).forEach { editText ->
+            editText.setOnFocusChangeListener { v, hasFocus ->
+                if (hasFocus) scrollToView(v)
             }
         }
 
-        val heightEditText = findViewById<EditText>(R.id.editTextHeight)
-        heightEditText.setOnFocusChangeListener { v, hasFocus ->
-            if (hasFocus) {
-                scrollToView(v)
-            }
-        }
-
-        // Initialize the camera launcher
+        // Camera launcher for profile image
         cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val imageBitmap = result.data?.extras?.get("data") as? Bitmap
                 if (imageBitmap != null) {
-                    // Pass image to new activity
                     val intent = Intent(this, PhotoPreviewActivity::class.java)
                     val stream = ByteArrayOutputStream()
                     imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-                    val byteArray = stream.toByteArray()
-                    intent.putExtra("capturedImage", byteArray)
-                    startActivity(intent)
+                    intent.putExtra("capturedImage", stream.toByteArray())
+                    photoPreviewLauncher.launch(intent) // ✅ Corrected this line
                 } else {
                     Toast.makeText(this, "Failed to capture image", Toast.LENGTH_SHORT).show()
                 }
-            } else {
-                Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show()
             }
         }
 
-
         // Camera icon click listener
-        val cameraIconSkinColour = findViewById<ImageView>(R.id.cameraIconSkinColour)
-        cameraIconSkinColour.setOnClickListener {
-            // Check runtime camera permission
+        findViewById<ImageView>(R.id.cameraIconSkinColour).setOnClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED
             ) {
@@ -145,13 +113,40 @@ class RoleSettingActivity : AppCompatActivity() {
             }
         }
 
-        val bodyTypeInfoIcon = findViewById<ImageView>(R.id.bodyTypeInfoIcon)
-        bodyTypeInfoIcon.setOnClickListener {
-            val intent = Intent(this, BodyTypeGalleryActivity::class.java)
-            startActivity(intent)
+        // Initialize skin type spinner
+        skinTypeSpinner = findViewById(R.id.skinTypeSpinner)
+        val skinTypes = listOf(
+            "Petite", "Column Female", "Inverted Triangle Female", "Apple", "Brick",
+            "Pear", "Hourglass", "Full Hourglass",
+            "Rectangle", "Square", "Inverted Triangle Male", "Triangle",
+            "Column Male", "Trapezium", "Circle", "Oval"
+        )
+        val skinTypeIcons = listOf(
+            R.drawable.ic_rectangle, R.drawable.ic_column, R.drawable.ic_inverted_triangle, R.drawable.ic_apple, R.drawable.ic_rectangle,
+            R.drawable.ic_triangle, R.drawable.ic_hourglass, R.drawable.ic_full_hourglass, R.drawable.ic_rectangle, R.drawable.ic_square,
+            R.drawable.ic_inverted_triangle, R.drawable.ic_triangle, R.drawable.ic_column, R.drawable.ic_trapezium, R.drawable.ic_circle, R.drawable.ic_oval
+        )
+        val skinTypeSpinnerAdapter = SkinTypeAdapter(this, skinTypes, skinTypeIcons)
+        skinTypeSpinner.adapter = skinTypeSpinnerAdapter
+
+        // Body type selection result handler
+        val bodyTypeLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val selectedBodyTypeIndex = result.data?.getIntExtra("selectedBodyTypeIndex", -1)
+                if (selectedBodyTypeIndex != null && selectedBodyTypeIndex in skinTypes.indices) {
+                    skinTypeSpinner.setSelection(selectedBodyTypeIndex)
+                }
+            }
         }
 
+        // Body type info icon click listener
+        findViewById<ImageView>(R.id.bodyTypeInfoIcon).setOnClickListener {
+            val intent = Intent(this, BodyTypeGalleryActivity::class.java)
+            bodyTypeLauncher.launch(intent)
+        }
     }
+
+
 
     private fun openCamera() {
         val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
