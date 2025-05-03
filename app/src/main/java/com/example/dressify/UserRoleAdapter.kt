@@ -28,7 +28,7 @@ class UserRoleAdapter(
     // View for selected item (collapsed state)
     // View for selected item (collapsed state)
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val view = LayoutInflater.from(context).inflate(R.layout.spinner_item, parent, false)
+        val view = LayoutInflater.from(context).inflate(R.layout.spinner_user_item, parent, false)
         val profileIcon: ImageView = view.findViewById(R.id.spinnerProfileIcon)
         val textView: TextView = view.findViewById(R.id.spinnerText)
         val settingsIcon: ImageView = view.findViewById(R.id.spinnerSettingsIcon)
@@ -56,7 +56,7 @@ class UserRoleAdapter(
 
     // View for dropdown items (expanded state)
     override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val view = LayoutInflater.from(context).inflate(R.layout.spinner_item, parent, false)
+        val view = LayoutInflater.from(context).inflate(R.layout.spinner_user_item, parent, false)
         val profileIcon: ImageView = view.findViewById(R.id.spinnerProfileIcon)
         val textView: TextView = view.findViewById(R.id.spinnerText)
         val settingsIcon: ImageView = view.findViewById(R.id.spinnerSettingsIcon)

@@ -24,7 +24,7 @@ class IconGridAdapter(
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val view: View = convertView ?: LayoutInflater.from(context)
-            .inflate(R.layout.item_icon, parent, false)
+            .inflate(R.layout.item_user_icon, parent, false)
         val iconImageView = view.findViewById<ImageView>(R.id.iconImageView)
         iconImageView.setImageResource(icons[position])
 

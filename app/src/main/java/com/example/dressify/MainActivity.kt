@@ -16,6 +16,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.DocumentSnapshot
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
@@ -37,6 +39,8 @@ class MainActivity : AppCompatActivity() {
     private val lastVisibleDocuments = mutableMapOf<String, DocumentSnapshot?>()
     private var isLoading = false
     private val pageSize = 2  // number of images to load at a time
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,21 +81,16 @@ class MainActivity : AppCompatActivity() {
 
                 // Handle dropdown visibility with animation
                 if (dy > 50 && isDropdownVisible) {
-                    dropdownRow.animate()
-                        .alpha(0f)
-                        .translationY(-dropdownRow.height.toFloat())
+                    dropdownRow.animate().alpha(0f).translationY(-dropdownRow.height.toFloat())
                         .setDuration(150)  // 300ms for smooth fade-slide up
                         .withEndAction {
                             dropdownRow.visibility = View.GONE
-                        }
-                        .start()
+                        }.start()
                     isDropdownVisible = false
 
                 } else if (firstVisibleItemPosition == 0 && !isDropdownVisible) {
                     dropdownRow.visibility = View.VISIBLE
-                    dropdownRow.animate()
-                        .alpha(1f)
-                        .translationY(0f)
+                    dropdownRow.animate().alpha(1f).translationY(0f)
                         .setDuration(150)  // 300ms for smooth fade-slide down
                         .start()
                     isDropdownVisible = true
@@ -111,9 +110,31 @@ class MainActivity : AppCompatActivity() {
         })
 
 
+        val appSection = findViewById<LinearLayout>(R.id.appSection)
+        appSection.setOnClickListener {
+            val intent = Intent(this@MainActivity, MainActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+            finish()
+        }
 
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout)
+        swipeRefreshLayout.setOnRefreshListener {
+            // Show loader automatically
 
+            // Clear existing data
+            imageList.clear()
+            recyclerView.adapter?.notifyDataSetChanged()
 
+            // Reset pagination states if needed
+            lastVisibleDocuments.clear()
+
+            // Re-fetch images
+            fetchImageUrlsFromFirestore()
+
+            // Stop the loader after a short delay or when data is fetched
+            swipeRefreshLayout.isRefreshing = false
+        }
 
 
     }
@@ -122,14 +143,13 @@ class MainActivity : AppCompatActivity() {
     private fun fetchImageUrlsFromFirestore() {
         imageList.clear()
         lastVisibleDocuments.clear()  // Reset for fresh fetch
-        val typesToFetch = if (selectedDressTypes.isEmpty()) allDressTypes.toList() else selectedDressTypes
+        val typesToFetch =
+            if (selectedDressTypes.isEmpty()) allDressTypes.toList() else selectedDressTypes
         var collectionsFetched = 0
 
         for (type in typesToFetch) {
             val collectionName = type.lowercase()
-            db.collection(collectionName)
-                .limit(pageSize.toLong())
-                .get()
+            db.collection(collectionName).limit(pageSize.toLong()).get()
                 .addOnSuccessListener { documents ->
                     if (documents.isEmpty) {
                         collectionsFetched++
@@ -157,9 +177,12 @@ class MainActivity : AppCompatActivity() {
                     if (collectionsFetched == typesToFetch.size) {
                         setupAdapter()
                     }
-                }
-                .addOnFailureListener { exception ->
-                    Log.e("FetchImages", "Error fetching from $collectionName: ${exception.message}", exception)
+                }.addOnFailureListener { exception ->
+                    Log.e(
+                        "FetchImages",
+                        "Error fetching from $collectionName: ${exception.message}",
+                        exception
+                    )
                     collectionsFetched++
                     if (collectionsFetched == typesToFetch.size) {
                         setupAdapter()
@@ -186,7 +209,11 @@ class MainActivity : AppCompatActivity() {
         // Set listener for the settings icon click
         userAdapter.setSettingsIconClickListener { position ->
             // Perform action when settings icon is clicked
-            Toast.makeText(this@MainActivity, "Settings icon clicked for: ${userRoles[position]}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this@MainActivity,
+                "Settings icon clicked for: ${userRoles[position]}",
+                Toast.LENGTH_SHORT
+            ).show()
             val intent = Intent(this@MainActivity, RoleSettingActivity::class.java)
             startActivity(intent)
         }
@@ -194,20 +221,21 @@ class MainActivity : AppCompatActivity() {
         var isFirstSelection = true
 
         userDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            override fun onItemSelected(
+                parent: AdapterView<*>?, view: View?, position: Int, id: Long
+            ) {
                 if (isFirstSelection) {
                     isFirstSelection = false
                     return
                 }
                 val selectedRole = userRoles[position]
-                Toast.makeText(this@MainActivity, "Selected: $selectedRole", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "Selected: $selectedRole", Toast.LENGTH_SHORT)
+                    .show()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
     }
-
-
 
 
     private fun setupFilter() {
@@ -218,16 +246,14 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.dressMoodDropdown).setOnClickListener {
             val checkedItems = BooleanArray(moodOptions.size)
-            AlertDialog.Builder(this)
-                .setTitle("Select Dress Mood")
+            AlertDialog.Builder(this).setTitle("Select Dress Mood")
                 .setMultiChoiceItems(moodOptions, checkedItems) { _, which, isChecked ->
                     if (isChecked) selectedMoods.add(moodOptions[which])
                     else selectedMoods.remove(moodOptions[which])
-                }
-                .setPositiveButton("OK") { _, _ ->
-                    findViewById<TextView>(R.id.dressMoodDropdown).text = selectedMoods.joinToString(", ")
-                }
-                .show()
+                }.setPositiveButton("OK") { _, _ ->
+                    findViewById<TextView>(R.id.dressMoodDropdown).text =
+                        selectedMoods.joinToString(", ")
+                }.show()
         }
 
 
@@ -236,8 +262,7 @@ class MainActivity : AppCompatActivity() {
                 selectedDressTypes.contains(allDressTypes[index])
             }
 
-            AlertDialog.Builder(this)
-                .setTitle("Select Dress Type")
+            AlertDialog.Builder(this).setTitle("Select Dress Type")
                 .setMultiChoiceItems(allDressTypes, checkedItems) { _, which, isChecked ->
                     val item = allDressTypes[which]
                     if (isChecked) {
@@ -247,14 +272,13 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         selectedDressTypes.remove(item)
                     }
-                }
-                .setPositiveButton("OK") { _, _ ->
+                }.setPositiveButton("OK") { _, _ ->
                     findViewById<TextView>(R.id.dressTypeDropdown).text =
-                        if (selectedDressTypes.isEmpty()) "All" else selectedDressTypes.joinToString(", ")
+                        if (selectedDressTypes.isEmpty()) "All" else selectedDressTypes.joinToString(
+                            ", "
+                        )
                     fetchImageUrlsFromFirestore()
-                }
-                .setNegativeButton("Cancel", null)
-                .show()
+                }.setNegativeButton("Cancel", null).show()
         }
 
 
@@ -264,20 +288,14 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.priceRangeDropdown).setOnClickListener {
             var selectedIndex = priceOptions.indexOf(selectedPrice)
-            AlertDialog.Builder(this)
-                .setTitle("Select Price Range")
+            AlertDialog.Builder(this).setTitle("Select Price Range")
                 .setSingleChoiceItems(priceOptions, selectedIndex) { _, which ->
                     selectedPrice = priceOptions[which]
-                }
-                .setPositiveButton("OK") { _, _ ->
+                }.setPositiveButton("OK") { _, _ ->
                     findViewById<TextView>(R.id.priceRangeDropdown).text = selectedPrice
-                }
-                .setNegativeButton("Cancel", null)
-                .show()
+                }.setNegativeButton("Cancel", null).show()
         }
     }
-
-
 
 
     private fun setupAdapter() {
@@ -313,8 +331,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
-
     private fun loadMoreImages() {
         if (isLoading) return  // Prevent multiple triggers (flickering issue)
 
@@ -322,7 +338,8 @@ class MainActivity : AppCompatActivity() {
 
         isLoading = true
 
-        val typesToFetch = if (selectedDressTypes.isEmpty()) allDressTypes.toList() else selectedDressTypes
+        val typesToFetch =
+            if (selectedDressTypes.isEmpty()) allDressTypes.toList() else selectedDressTypes
         var collectionsFetched = 0
 
         for (type in typesToFetch) {
@@ -337,10 +354,7 @@ class MainActivity : AppCompatActivity() {
                 continue
             }
 
-            db.collection(collectionName)
-                .startAfter(lastVisible)
-                .limit(pageSize.toLong())
-                .get()
+            db.collection(collectionName).startAfter(lastVisible).limit(pageSize.toLong()).get()
                 .addOnSuccessListener { documents ->
                     Log.d("LoadMore", "Fetched more images from $collectionName")
 
@@ -360,7 +374,9 @@ class MainActivity : AppCompatActivity() {
                         imageList.addAll(newItems)
 
                         // Update RecyclerView once after all items are added
-                        recyclerView.adapter?.notifyItemRangeInserted(imageList.size - newItems.size, newItems.size)
+                        recyclerView.adapter?.notifyItemRangeInserted(
+                            imageList.size - newItems.size, newItems.size
+                        )
 
                         lastVisibleDocuments[collectionName] = documents.documents.last()
                     }
@@ -369,8 +385,7 @@ class MainActivity : AppCompatActivity() {
                     if (collectionsFetched == typesToFetch.size) {
                         isLoading = false
                     }
-                }
-                .addOnFailureListener {
+                }.addOnFailureListener {
                     collectionsFetched++
                     if (collectionsFetched == typesToFetch.size) {
                         isLoading = false
@@ -378,7 +393,6 @@ class MainActivity : AppCompatActivity() {
                 }
         }
     }
-
 
 
 }
