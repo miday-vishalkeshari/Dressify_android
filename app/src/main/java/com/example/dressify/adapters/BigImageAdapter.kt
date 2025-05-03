@@ -1,4 +1,4 @@
-package com.example.dressify
+package com.example.dressify.adapters
 
 import android.content.Context
 import android.content.Intent
@@ -8,6 +8,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.dressify.FullScreenImageActivity
+import com.example.dressify.R
 
 class BigImageAdapter(
     private val context: Context,

@@ -1,4 +1,4 @@
-package com.example.dressify
+package com.example.dressify.adapters
 
 import android.app.Activity
 import android.content.Context
@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
+import com.example.dressify.R
 
 class BodyTypeAdapter(
     private val context: Context,

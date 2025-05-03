@@ -1,4 +1,4 @@
-package com.example.dressify
+package com.example.dressify.adapters
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.TextView
+import com.example.dressify.R
 
 class SkinTypeAdapter(
     context: Context,

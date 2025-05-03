@@ -19,6 +19,8 @@ import com.google.firebase.firestore.DocumentSnapshot
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import android.os.Handler
 import android.os.Looper
+import com.example.dressify.adapters.MediumImageAdapter
+import com.example.dressify.models.ImageItem
 
 
 class MainActivity : AppCompatActivity() {

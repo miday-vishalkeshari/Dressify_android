@@ -1,4 +1,4 @@
-package com.example.dressify
+package com.example.dressify.models
 
 data class ImageItem(
     val imageUrl: String,
