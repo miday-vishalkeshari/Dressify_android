@@ -16,6 +16,9 @@
         android:theme="@style/Theme.Dressify"
         tools:targetApi="31">
         <activity
+            android:name=".BodyTypeGalleryActivity"
+            android:exported="false" />
+        <activity
             android:name=".PhotoPreviewActivity"
             android:exported="false" />
         <activity

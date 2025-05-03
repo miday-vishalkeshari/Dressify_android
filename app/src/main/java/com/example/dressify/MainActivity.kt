@@ -110,35 +110,31 @@ class MainActivity : AppCompatActivity() {
         })
 
 
-        val appSection = findViewById<LinearLayout>(R.id.appSection)
-        appSection.setOnClickListener {
-            val intent = Intent(this@MainActivity, MainActivity::class.java)
-            startActivity(intent)
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-            finish()
-        }
-
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout)
         swipeRefreshLayout.setOnRefreshListener {
-            // Show loader automatically
-
-            // Clear existing data
-            imageList.clear()
-            recyclerView.adapter?.notifyDataSetChanged()
-
-            // Reset pagination states if needed
-            lastVisibleDocuments.clear()
-
-            // Re-fetch images
-            fetchImageUrlsFromFirestore()
-
-            // Stop the loader after a short delay or when data is fetched
-            swipeRefreshLayout.isRefreshing = false
+            refreshContent()
         }
 
+        val appSection = findViewById<LinearLayout>(R.id.appSection)
+        appSection.setOnClickListener {
+            refreshContent()
+        }
 
     }
 
+    private fun refreshContent() {
+        swipeRefreshLayout.isRefreshing = true
+
+        // Clear existing data
+        imageList.clear()
+        recyclerView.adapter?.notifyDataSetChanged()
+
+        // Reset pagination states if needed
+        lastVisibleDocuments.clear()
+
+        // Re-fetch images
+        fetchImageUrlsFromFirestore()
+    }
 
     private fun fetchImageUrlsFromFirestore() {
         imageList.clear()
@@ -155,6 +151,7 @@ class MainActivity : AppCompatActivity() {
                         collectionsFetched++
                         if (collectionsFetched == typesToFetch.size) {
                             setupAdapter()
+                            swipeRefreshLayout.isRefreshing = false  // <-- Stop loader here
                         }
                         return@addOnSuccessListener
                     }
@@ -176,6 +173,7 @@ class MainActivity : AppCompatActivity() {
                     collectionsFetched++
                     if (collectionsFetched == typesToFetch.size) {
                         setupAdapter()
+                        swipeRefreshLayout.isRefreshing = false  // <-- Stop loader here
                     }
                 }.addOnFailureListener { exception ->
                     Log.e(
@@ -186,6 +184,7 @@ class MainActivity : AppCompatActivity() {
                     collectionsFetched++
                     if (collectionsFetched == typesToFetch.size) {
                         setupAdapter()
+                        swipeRefreshLayout.isRefreshing = false  // <-- Stop loader here
                     }
                 }
         }

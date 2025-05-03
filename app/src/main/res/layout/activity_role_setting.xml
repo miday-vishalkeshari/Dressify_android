@@ -194,6 +194,15 @@
                         android:spinnerMode="dropdown"
                         android:background="@drawable/spinner_bg"
                         android:padding="4dp" />
+                    <ImageView
+                        android:id="@+id/bodyTypeInfoIcon"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:layout_marginStart="16dp"
+                        android:src="@drawable/bodytypeinfoicon"
+                        android:contentDescription="View images"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:padding="4dp" />
 
 
                     <!-- Camera icon positioned at the right -->

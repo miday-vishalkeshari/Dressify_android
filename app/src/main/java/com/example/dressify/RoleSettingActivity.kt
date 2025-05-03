@@ -144,6 +144,13 @@ class RoleSettingActivity : AppCompatActivity() {
                 openCamera()
             }
         }
+
+        val bodyTypeInfoIcon = findViewById<ImageView>(R.id.bodyTypeInfoIcon)
+        bodyTypeInfoIcon.setOnClickListener {
+            val intent = Intent(this, BodyTypeGalleryActivity::class.java)
+            startActivity(intent)
+        }
+
     }
 
     private fun openCamera() {
