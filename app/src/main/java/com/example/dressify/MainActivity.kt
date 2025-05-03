@@ -191,9 +191,6 @@ class MainActivity : AppCompatActivity() {
 
 
 
-
-
-
     private fun refreshContent() {
         swipeRefreshLayout.isRefreshing = true
 
@@ -267,21 +264,33 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupFilter() {
 
-        // Dress Mood Multi-Choice Dropdown
         val moodOptions = arrayOf("Casual", "Formal", "Party", "Workout")
         val selectedMoods = mutableListOf<String>()
 
         findViewById<TextView>(R.id.dressMoodDropdown).setOnClickListener {
-            val checkedItems = BooleanArray(moodOptions.size)
-            AlertDialog.Builder(this).setTitle("Select Dress Mood")
+            // Reflect current selectedMoods into checkedItems before opening dialog
+            val checkedItems = BooleanArray(moodOptions.size) { index ->
+                selectedMoods.contains(moodOptions[index])
+            }
+
+            AlertDialog.Builder(this)
+                .setTitle("Select Dress Mood")
                 .setMultiChoiceItems(moodOptions, checkedItems) { _, which, isChecked ->
-                    if (isChecked) selectedMoods.add(moodOptions[which])
-                    else selectedMoods.remove(moodOptions[which])
-                }.setPositiveButton("OK") { _, _ ->
+                    if (isChecked) {
+                        if (!selectedMoods.contains(moodOptions[which])) {
+                            selectedMoods.add(moodOptions[which])
+                        }
+                    } else {
+                        selectedMoods.remove(moodOptions[which])
+                    }
+                }
+                .setPositiveButton("OK") { _, _ ->
                     findViewById<TextView>(R.id.dressMoodDropdown).text =
                         selectedMoods.joinToString(", ")
-                }.show()
+                }
+                .show()
         }
+
 
 
         findViewById<TextView>(R.id.dressTypeDropdown).setOnClickListener {
@@ -309,19 +318,34 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        // Price Range Single-Choice Dropdown
         val priceOptions = arrayOf("Under ₹500", "₹500 - ₹1000", "₹1000 - ₹2000", "Above ₹2000")
-        var selectedPrice = ""
+        val selectedPrices = mutableListOf<String>()
 
         findViewById<TextView>(R.id.priceRangeDropdown).setOnClickListener {
-            var selectedIndex = priceOptions.indexOf(selectedPrice)
-            AlertDialog.Builder(this).setTitle("Select Price Range")
-                .setSingleChoiceItems(priceOptions, selectedIndex) { _, which ->
-                    selectedPrice = priceOptions[which]
-                }.setPositiveButton("OK") { _, _ ->
-                    findViewById<TextView>(R.id.priceRangeDropdown).text = selectedPrice
-                }.setNegativeButton("Cancel", null).show()
+            // Reflect current selections into checkedItems before opening dialog
+            val checkedItems = BooleanArray(priceOptions.size) { index ->
+                selectedPrices.contains(priceOptions[index])
+            }
+
+            AlertDialog.Builder(this)
+                .setTitle("Select Price Range")
+                .setMultiChoiceItems(priceOptions, checkedItems) { _, which, isChecked ->
+                    if (isChecked) {
+                        if (!selectedPrices.contains(priceOptions[which])) {
+                            selectedPrices.add(priceOptions[which])
+                        }
+                    } else {
+                        selectedPrices.remove(priceOptions[which])
+                    }
+                }
+                .setPositiveButton("OK") { _, _ ->
+                    findViewById<TextView>(R.id.priceRangeDropdown).text =
+                        selectedPrices.joinToString(", ")
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
+
     }
 
 

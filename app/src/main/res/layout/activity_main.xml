@@ -108,7 +108,7 @@
             <!-- Dress Mood Dropdown -->
             <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="70dp"
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:background="@android:color/transparent"
@@ -134,7 +134,7 @@
             <!-- Dress Type Dropdown -->
             <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="70dp"
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:background="@android:color/transparent"
@@ -161,7 +161,7 @@
             <!-- Price Range Dropdown -->
             <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="70dp"
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:background="@android:color/transparent"
