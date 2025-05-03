@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:layout_marginTop="24dp"
+    android:layout_marginTop="32dp"
     android:paddingBottom="50dp"
     android:background="@color/white">
 
@@ -43,15 +43,15 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Choose an Icon"
+                    android:text="Choose an Avatar"
                     android:textSize="18sp"
                     android:layout_marginBottom="8dp" />
 
                 <GridView
                     android:id="@+id/iconGridView"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:numColumns="6"
+                    android:layout_height="124dp"
+                    android:numColumns="5"
                     android:verticalSpacing="8dp"
                     android:horizontalSpacing="8dp"
                     android:stretchMode="columnWidth"
@@ -78,7 +78,7 @@
                     android:layout_height="wrap_content"
                     android:text="Name"
                     android:textSize="18sp"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="12dp"
                     android:layout_marginBottom="4dp" />
 
                 <EditText
@@ -96,7 +96,7 @@
                     android:layout_height="wrap_content"
                     android:text="Gender"
                     android:textSize="18sp"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="12dp"
                     android:layout_marginBottom="4dp" />
 
                 <RadioGroup
@@ -124,13 +124,21 @@
                         android:text="Other" />
                 </RadioGroup>
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Age"
+                    android:textSize="18sp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="4dp" />
+
                 <EditText
                     android:id="@+id/editTextAge"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Age"
                     android:inputType="number"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="12dp"
                     android:padding="12dp"
                     android:background="@drawable/edit_text_bg" />
 
@@ -139,7 +147,7 @@
                     android:layout_height="wrap_content"
                     android:text="Skin Colour"
                     android:textSize="18sp"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="12dp"
                     android:layout_marginBottom="4dp" />
 
                 <LinearLayout
@@ -175,7 +183,7 @@
                     android:layout_height="wrap_content"
                     android:text="Skin Type"
                     android:textSize="18sp"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="12dp"
                     android:layout_marginBottom="4dp" />
 
                 <LinearLayout
@@ -216,6 +224,13 @@
                 </LinearLayout>
 
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Height"
+                    android:textSize="18sp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="4dp" />
 
                 <EditText
                     android:id="@+id/editTextHeight"
@@ -223,7 +238,7 @@
                     android:layout_height="wrap_content"
                     android:hint="Height (in cm)"
                     android:inputType="number"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="12dp"
                     android:padding="12dp"
                     android:background="@drawable/edit_text_bg" />
 

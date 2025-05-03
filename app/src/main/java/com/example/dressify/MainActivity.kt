@@ -153,14 +153,14 @@ class MainActivity : AppCompatActivity() {
         // Set listener for the settings icon click
         userAdapter.setSettingsIconClickListener { position ->
             // Perform action when settings icon is clicked
-            Toast.makeText(
-                this@MainActivity,
-                "Settings icon clicked for: ${userRoles[position]}",
-                Toast.LENGTH_SHORT
-            ).show()
+            // Get the selected username
+            val selectedUser = userRoles[position]
+
 
             // Open settings activity
             val intent = Intent(this@MainActivity, RoleSettingActivity::class.java)
+            // Put the selected username as an extra
+            intent.putExtra("selected_user", selectedUser)
             startActivity(intent)
 
             // Close the spinner dropdown by triggering a click action

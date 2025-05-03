@@ -32,6 +32,13 @@ class RoleSettingActivity : AppCompatActivity() {
 
         scrollView = findViewById(R.id.roleSettingScrollView)
 
+        val selectedUser = intent.getStringExtra("selected_user")
+        val editTextName = findViewById<EditText>(R.id.editTextName)
+        selectedUser?.let {
+            editTextName.setText(it)
+        }
+
+
         // Icon Grid setup
         iconGridView = findViewById(R.id.iconGridView)
         val iconList = listOf(
@@ -40,7 +47,11 @@ class RoleSettingActivity : AppCompatActivity() {
             R.drawable.dummy_person_icon3,
             R.drawable.dummy_person_icon4,
             R.drawable.dummy_person_icon5,
-            R.drawable.dummy_person_icon6
+            R.drawable.dummy_person_icon6,
+            R.drawable.dummy_person_icon7,
+            R.drawable.dummy_person_icon8,
+            R.drawable.dummy_person_icon9,
+            R.drawable.dummy_person_icon10
         )
         val adapter = IconGridAdapter(this, iconList)
         iconGridView.adapter = adapter
