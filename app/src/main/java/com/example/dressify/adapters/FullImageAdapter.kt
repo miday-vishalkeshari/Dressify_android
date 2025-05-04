@@ -11,9 +11,7 @@ import com.example.dressify.R
 
 class FullImageAdapter(
     private val context: Context,
-    private val imageItemList: List<String>,
-    private val docId: String,                // added docId
-    private val collectionName: String        // added collectionName
+    private val imageItemList: List<String>
 ) : RecyclerView.Adapter<FullImageAdapter.ImageViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {

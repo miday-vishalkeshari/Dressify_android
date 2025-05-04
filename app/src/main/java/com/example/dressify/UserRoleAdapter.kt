@@ -7,10 +7,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import android.util.Log
+import com.example.dressify.models.UserRole
 
 class UserRoleAdapter(
     private val context: Context,
-    private val roles: List<String>,
+    private val roles: List<UserRole>, // Changed from List<String> to List<UserRole>
     private val iconResIds: List<Int>
 ) : BaseAdapter() {
 
@@ -45,8 +46,11 @@ class UserRoleAdapter(
         val settingsIcon: ImageView = view.findViewById(R.id.spinnerSettingsIcon)
         val divider: View = view.findViewById(R.id.spinnerDivider)
 
+        // Set the profile icon
         profileIcon.setImageResource(iconResIds[position])
-        textView.text = roles[position]
+
+        // Set the role name
+        textView.text = roles[position].name // Use the `name` from UserRole
 
         if (isDropdown) {
             profileIcon.layoutParams.height = 120

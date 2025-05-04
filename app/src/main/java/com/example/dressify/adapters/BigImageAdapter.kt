@@ -14,8 +14,8 @@ import com.example.dressify.R
 class BigImageAdapter(
     private val context: Context,
     private val imageItemList: List<String>,
-    private val docId: String,                // added this
-    private val collectionName: String        // optional — if you need it
+    private val docId: String,
+    private val collectionName: String
 ) : RecyclerView.Adapter<BigImageAdapter.ImageViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {

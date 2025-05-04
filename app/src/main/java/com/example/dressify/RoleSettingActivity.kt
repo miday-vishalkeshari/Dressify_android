@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
@@ -17,6 +18,9 @@ import androidx.core.content.ContextCompat
 import com.example.dressify.adapters.IconGridAdapter
 import com.example.dressify.adapters.SkinColourAdapter
 import com.example.dressify.adapters.SkinTypeAdapter
+import com.example.dressify.models.UserRole
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.io.ByteArrayOutputStream
 
 class RoleSettingActivity : AppCompatActivity() {
@@ -28,6 +32,12 @@ class RoleSettingActivity : AppCompatActivity() {
     private lateinit var cameraLauncher: ActivityResultLauncher<Intent>
     private lateinit var photoPreviewLauncher: ActivityResultLauncher<Intent>
     private var selectedIconResId: Int? = null
+    private lateinit var logoutButton: Button
+    private var userId: String? = null
+    private var userGender: String? = null  // Variable to hold gender
+    private var userAge: String? = null  // Variable to hold age
+    private var userEmoji: String? = null  // Variable to hold emoji
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +50,11 @@ class RoleSettingActivity : AppCompatActivity() {
         setupFocusAutoScroll()
         setupCameraLauncher()
         setupBodyTypeInfoLauncher()
+
+        // Setup the logout button
+        logoutButton.setOnClickListener {
+            logout()
+        }
     }
 
     private fun initializeViews() {
@@ -47,9 +62,85 @@ class RoleSettingActivity : AppCompatActivity() {
         iconGridView = findViewById(R.id.iconGridView)
         skinColourSpinner = findViewById(R.id.skinColourSpinner)
         skinTypeSpinner = findViewById(R.id.skinTypeSpinner)
+        logoutButton = findViewById(R.id.logoutButton)
 
-        val selectedUser = intent.getStringExtra("selected_user")
-        findViewById<EditText>(R.id.editTextName).setText(selectedUser ?: "")
+        val selectedUser = intent.getSerializableExtra("selected_user") as? UserRole
+        val name = selectedUser?.name
+        userId = selectedUser?.id
+
+        // Fetch user details from Firestore based on userId
+        fetchUserDetailsFromFirestore(userId)
+
+        findViewById<EditText>(R.id.editTextName).setText(name ?: "")
+    }
+
+    private fun fetchUserDetailsFromFirestore(userId: String?) {
+        // Ensure the userId is not null or empty
+        if (userId.isNullOrEmpty()) {
+            Log.e("RoleSettingActivity", "User ID is null or empty")
+            return
+        }
+
+        // Get the reference to the Firestore collection
+        val userRef = FirebaseFirestore.getInstance().collection("Dressify_users")
+
+        // Query Firestore for the document where id matches userId
+        userRef.get()
+            .addOnSuccessListener { documents ->
+                // Loop through all documents
+                for (document in documents) {
+                    // Get the "names" list from the document
+                    val namesList = document.get("names") as? List<Map<String, Any>>
+
+                    // If "namesList" exists and is not empty
+                    namesList?.forEach { nameDetails ->
+                        val id = nameDetails["id"] as? String
+
+                        // Only process the user with the matching id
+                        if (id == userId) {
+                            val name = nameDetails["name"] as? String
+                            val gender = nameDetails["gender"] as? String
+                            val age = nameDetails["age"] as? String
+                            val emoji = nameDetails["emoji"] as? String
+
+                            // Assign the values to the global variables
+                            userGender = gender
+                            userAge = age
+                            userEmoji = emoji
+
+                            // Update UI elements
+                            updateUIWithUserDetails()
+                            return@forEach // Exit the loop once the user is found
+                        }
+                    }
+                }
+            }
+            .addOnFailureListener { exception ->
+                // Log failure if there is any issue with fetching data
+                Log.e("RoleSettingActivity", "Error fetching user details: ", exception)
+            }
+    }
+
+
+    private fun updateUIWithUserDetails() {
+        // Log the values to check if they're being fetched correctly
+        Log.d("RoleSettingActivity", "User Age: $userAge")
+
+        val userAgeToDisplay = userAge ?: "Not available"
+        Toast.makeText(this, "User Age: $userAgeToDisplay", Toast.LENGTH_SHORT).show()
+
+        // Set the age in the EditText
+        findViewById<EditText>(R.id.editTextAge).setText(userAgeToDisplay)
+    }
+
+    private fun logout() {
+        // Sign out from Firebase
+        FirebaseAuth.getInstance().signOut()
+
+        // Redirect to LoginActivity
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+        finish()  // Close the current activity so the user can't navigate back
     }
 
     private fun setupIconGrid() {

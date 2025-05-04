@@ -21,6 +21,7 @@ import android.os.Handler
 import android.os.Looper
 import com.example.dressify.adapters.MediumImageAdapter
 import com.example.dressify.models.ImageItem
+import com.example.dressify.models.UserRole
 
 
 class MainActivity : AppCompatActivity() {
@@ -128,71 +129,74 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUserDropdown() {
-        // Get the spinner reference from the layout
         val userDropdown: Spinner = findViewById(R.id.userDropdown)
 
-        // Check if spinner is null for debugging (optional)
         if (userDropdown == null) {
             Log.e("MainActivity", "Spinner not found in layout")
-        } else {
-            Log.d("MainActivity", "Spinner found: $userDropdown")
+            return
         }
 
-        // Create a list of user roles and corresponding icons
-        val userRoles = listOf("User1", "User2", "User3")
-        val userIcons = listOf(
-            R.drawable.dummy_person_icon1,  // Icon for User1
-            R.drawable.dummy_person_icon2,  // Icon for User2
-            R.drawable.dummy_person_icon1   // Icon for User3
-        )
-
-        // Create the adapter for the spinner
-        val userAdapter = UserRoleAdapter(this, userRoles, userIcons)
-
-        // Attach the spinner reference to the adapter before setting it as the adapter
-        userAdapter.attachSpinner(userDropdown)  // Attach spinner reference first
-
-        // Set the adapter to the spinner
-        userDropdown.adapter = userAdapter
-
-        // Set listener for the settings icon click
-        userAdapter.setSettingsIconClickListener { position ->
-            // Perform action when settings icon is clicked
-            // Get the selected username
-            val selectedUser = userRoles[position]
-
-
-            // Open settings activity
-            val intent = Intent(this@MainActivity, RoleSettingActivity::class.java)
-            // Put the selected username as an extra
-            intent.putExtra("selected_user", selectedUser)
-            startActivity(intent)
-
-            // Close the spinner dropdown by triggering a click action
-            userDropdown.post {
-                userDropdown.performClick()  // This should trigger the spinner to close
+        fetchUserRolesFromFirestore { userRoles ->
+            if (userRoles.isEmpty()) {
+                Log.w("MainActivity", "No user roles fetched.")
+                return@fetchUserRolesFromFirestore
             }
-        }
 
-        var isFirstSelection = true
+            val userIcons = List(userRoles.size) { R.drawable.dummy_person_icon1 } // placeholder icons
 
-        // Set the item selected listener for the spinner
-        userDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>?, view: View?, position: Int, id: Long
-            ) {
-                if (isFirstSelection) {
-                    isFirstSelection = false
-                    return
+            val userAdapter = UserRoleAdapter(this, userRoles, userIcons)
+            userAdapter.attachSpinner(userDropdown)
+            userDropdown.adapter = userAdapter
+
+            userAdapter.setSettingsIconClickListener { position ->
+                val selectedUser = userRoles[position]
+                val intent = Intent(this@MainActivity, RoleSettingActivity::class.java)
+                intent.putExtra("selected_user", selectedUser)  // passing UserRole via Serializable
+                startActivity(intent)
+
+                userDropdown.post { userDropdown.performClick() }
+            }
+
+            var isFirstSelection = true
+            userDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    if (isFirstSelection) {
+                        isFirstSelection = false
+                        return
+                    }
+                    val selectedRole = userRoles[position]
+                    Toast.makeText(this@MainActivity, "Selected: ${selectedRole.name}", Toast.LENGTH_SHORT).show()
                 }
-                val selectedRole = userRoles[position]
-                Toast.makeText(this@MainActivity, "Selected: $selectedRole", Toast.LENGTH_SHORT)
-                    .show()
-            }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
+            }
         }
     }
+
+
+    private fun fetchUserRolesFromFirestore(onComplete: (List<UserRole>) -> Unit) {
+        db.collection("Dressify_users")
+            .get()
+            .addOnSuccessListener { documents ->
+                val roles = mutableListOf<UserRole>()
+                for (document in documents) {
+                    val namesList = document.get("names") as? List<Map<String, Any>>
+                    namesList?.forEach { nameDetails ->
+                        val name = nameDetails["name"] as? String
+                        val id = nameDetails["id"] as? String
+                        if (!name.isNullOrEmpty() && !id.isNullOrEmpty()) {
+                            roles.add(UserRole(name, id))
+                        }
+                    }
+                }
+                onComplete(roles)
+            }
+            .addOnFailureListener { exception ->
+                Log.w("MainActivity", "Error fetching user roles: ", exception)
+                onComplete(emptyList())
+            }
+    }
+
 
 
 
@@ -231,7 +235,6 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     for (document in documents) {
-                        ///////////////////////////////////////////////////////////////////////////////////////////////
                         val imageUrls = document.get("image_urls") as? List<*>
                         val imageUrl = imageUrls?.getOrNull(0) as? String
 

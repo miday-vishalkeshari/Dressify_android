@@ -18,6 +18,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -38,21 +42,30 @@ android {
     }
 }
 
+
+
 dependencies {
-    // AndroidX libraries
+    // Use the Firebase BoM to manage versions
+    implementation(platform("com.google.firebase:firebase-bom:32.2.3"))
+
+    // Add Firebase libraries without specifying versions
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+
+    // Other dependencies
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
-
-    // Firebase BoM for consistent versions
-    implementation(platform("com.google.firebase:firebase-bom:30.3.0"))
-
-    // Firebase libraries without specifying versions
-    implementation("com.google.firebase:firebase-storage")
-    implementation("com.google.firebase:firebase-firestore")
     implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
+    // Google Sign-In library
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
 
     // Testing libraries
     testImplementation(libs.junit)
@@ -63,5 +76,5 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 
-    implementation ("androidx.recyclerview:recyclerview:1.3.1")
+    implementation("androidx.recyclerview:recyclerview:1.3.1")
 }
