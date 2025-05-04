@@ -5,10 +5,10 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingStart="4dp"
-    android:paddingEnd="4dp"
-    android:paddingTop="4dp"
-    android:paddingBottom="4dp"
+    android:paddingStart="2dp"
+    android:paddingEnd="2dp"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp"
     android:background="?android:attr/selectableItemBackground"
     android:clipToPadding="false"
     tools:ignore="UseCompoundDrawables">
@@ -22,10 +22,10 @@
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:src="@drawable/dummy_person_icon1"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="4dp"
         android:contentDescription="Profile Icon"
         android:layout_gravity="center_vertical"
-        android:padding="4dp"/>
+        android:padding="1dp"/>
 
     <!-- User name text with modern styling -->
     <TextView
@@ -46,8 +46,8 @@
         android:id="@+id/spinnerDivider"
         android:layout_width="1dp"
         android:layout_height="match_parent"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
         android:background="#BDBDBD" /> <!-- Gray divider color -->
 
 

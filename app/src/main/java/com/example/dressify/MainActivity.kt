@@ -46,6 +46,8 @@ class MainActivity : AppCompatActivity() {
     private var isLoading = false
     private val pageSize = 2  // number of images to load at a time
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private var documentId: String? = null
+
 
 
 
@@ -56,6 +58,9 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance()
+
+        documentId = intent.getStringExtra("documentId")
+        Log.d("MainActivity", "Received documentId: $documentId")
 
         // Initialize RecyclerView and the image list
         recyclerView = findViewById(R.id.imageRecyclerView)
@@ -142,16 +147,44 @@ class MainActivity : AppCompatActivity() {
                 return@fetchUserRolesFromFirestore
             }
 
-            val userIcons = List(userRoles.size) { R.drawable.dummy_person_icon1 } // placeholder icons
+            val emojiToIconMap = mapOf(
+                "1" to R.drawable.dummy_person_icon1,
+                "2" to R.drawable.dummy_person_icon2,
+                "3" to R.drawable.dummy_person_icon3,
+                "4" to R.drawable.dummy_person_icon4,
+                "5" to R.drawable.dummy_person_icon5,
+                "6" to R.drawable.dummy_person_icon6,
+                "7" to R.drawable.dummy_person_icon7,
+                "8" to R.drawable.dummy_person_icon8,
+                "9" to R.drawable.dummy_person_icon9,
+                "10" to R.drawable.dummy_person_icon10,
+                "11" to R.drawable.ic_add,
+            )
 
-            val userAdapter = UserRoleAdapter(this, userRoles, userIcons)
+            // Add "Add Role" item at the end
+            val addRoleItem = UserRole("Add User", "", "11")
+            val updatedUserRoles = userRoles.toMutableList()
+            updatedUserRoles.add(addRoleItem)
+
+            // Now create a list of icons for updatedUserRoles
+            val userIcons = updatedUserRoles.map { userRole ->
+                emojiToIconMap[userRole.emoji] ?: R.drawable.dummy_person_icon1
+            }
+
+            val userAdapter = UserRoleAdapter(this, updatedUserRoles, userIcons)
             userAdapter.attachSpinner(userDropdown)
             userDropdown.adapter = userAdapter
 
             userAdapter.setSettingsIconClickListener { position ->
-                val selectedUser = userRoles[position]
+                val selectedUser = updatedUserRoles[position]
+                if (selectedUser.name == "Add User") {
+                    // Skip handling "Add User" settings
+                    return@setSettingsIconClickListener
+                }
+
                 val intent = Intent(this@MainActivity, RoleSettingActivity::class.java)
-                intent.putExtra("selected_user", selectedUser)  // passing UserRole via Serializable
+                intent.putExtra("selected_user", selectedUser)
+                intent.putExtra("documentId", documentId)
                 startActivity(intent)
 
                 userDropdown.post { userDropdown.performClick() }
@@ -164,38 +197,75 @@ class MainActivity : AppCompatActivity() {
                         isFirstSelection = false
                         return
                     }
-                    val selectedRole = userRoles[position]
-                    Toast.makeText(this@MainActivity, "Selected: ${selectedRole.name}", Toast.LENGTH_SHORT).show()
+
+                    val selectedRole = updatedUserRoles[position]
+
+                    if (selectedRole.name == "Add User") {
+                        userDropdown.setSelection(0)
+                        val intent = Intent(this@MainActivity, RoleSettingActivity::class.java)
+                        intent.putExtra("selected_user", selectedRole)
+                        intent.putExtra("documentId", documentId)
+                        startActivity(intent)
+                    }
+                    else{
+                        userDropdown.setSelection(position)
+                        Toast.makeText(this@MainActivity, "Selected: ${selectedRole.name}", Toast.LENGTH_SHORT).show()
+                    }
+
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
         }
+
     }
 
 
     private fun fetchUserRolesFromFirestore(onComplete: (List<UserRole>) -> Unit) {
+        // Check if documentId is available
+        val docId = documentId
+        if (docId.isNullOrEmpty()) {
+            Log.e("MainActivity", "Document ID is null or empty.")
+            onComplete(emptyList())
+            return
+        }
+
+        // Fetch only this document
         db.collection("Dressify_users")
+            .document(docId)
             .get()
-            .addOnSuccessListener { documents ->
-                val roles = mutableListOf<UserRole>()
-                for (document in documents) {
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val roles = mutableListOf<UserRole>()
                     val namesList = document.get("names") as? List<Map<String, Any>>
                     namesList?.forEach { nameDetails ->
-                        val name = nameDetails["name"] as? String
+                        var name = nameDetails["name"] as? String
                         val id = nameDetails["id"] as? String
+                        val emoji = nameDetails["emoji"] as? String
+
+                        Log.d("MainActivity", "Fetched name: $name")
+                        Log.d("MainActivity", "Fetched id: $id")
+
+                        if (name.isNullOrEmpty()) {
+                            name ="UserName"
+                        }
+
                         if (!name.isNullOrEmpty() && !id.isNullOrEmpty()) {
-                            roles.add(UserRole(name, id))
+                            roles.add(UserRole(name, id, emoji.toString()))
                         }
                     }
+                    onComplete(roles)
+                } else {
+                    Log.w("MainActivity", "Document not found for ID: $docId")
+                    onComplete(emptyList())
                 }
-                onComplete(roles)
             }
             .addOnFailureListener { exception ->
-                Log.w("MainActivity", "Error fetching user roles: ", exception)
+                Log.e("MainActivity", "Error fetching user roles: ", exception)
                 onComplete(emptyList())
             }
     }
+
 
 
 

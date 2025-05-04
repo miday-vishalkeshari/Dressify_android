@@ -60,8 +60,23 @@ class UserRoleAdapter(
             textView.textSize = 18f
             textView.setPadding(8, 8, 8, 8)
 
-            settingsIcon.visibility = View.VISIBLE
-            divider.visibility = View.VISIBLE
+            // 👇 Hide settings icon if role is "Add User"
+            if (roles[position].name == "Add User") {
+                settingsIcon.visibility = View.GONE
+                divider.visibility = View.GONE
+
+                view.setBackgroundResource(R.color.add_user_background)
+
+            } else {
+                settingsIcon.visibility = View.VISIBLE
+                divider.visibility = View.VISIBLE
+                settingsIcon.setOnClickListener {
+                    Log.d("UserRoleAdapter", "Settings icon clicked for position: $position")
+                    settingsIconClickListener?.invoke(position)
+                    closeDropdown()
+                }
+            }
+
 
             settingsIcon.setOnClickListener {
                 Log.d("UserRoleAdapter", "Settings icon clicked for position: $position")

@@ -37,6 +37,31 @@ class RoleSettingActivity : AppCompatActivity() {
     private var userGender: String? = null  // Variable to hold gender
     private var userAge: String? = null  // Variable to hold age
     private var userEmoji: String? = null  // Variable to hold emoji
+    private var documentId: String? = null
+    private var userSkinColour: String? = null
+    private var userSkinType: String? = null
+    private var userHeight: String? = null
+    // Class-level variables to store the lists
+    private val skinColours = listOf(
+        "Very Fair", "Fair", "Medium Fair", "Medium", "Medium Dark", "Dark", "Very Dark"
+    )
+    private val skinColourHexCodes = listOf(
+        0xFFFFE0BD.toInt(), 0xFFEECD9C.toInt(), 0xFFCEAA88.toInt(), 0xFFBE8C63.toInt(),
+        0xFF8D5524.toInt(), 0xFF7D451A.toInt(), 0xFF5C3317.toInt()
+    )
+    private val skinTypes = listOf(
+        "Petite", "Column Female", "Inverted Triangle Female", "Apple", "Brick",
+        "Pear", "Hourglass", "Full Hourglass", "Rectangle", "Square",
+        "Inverted Triangle Male", "Triangle", "Column Male", "Trapezium", "Circle", "Oval"
+    )
+    private val skinTypeIcons = listOf(
+        R.drawable.ic_rectangle, R.drawable.ic_column, R.drawable.ic_inverted_triangle, R.drawable.ic_apple, R.drawable.ic_rectangle,
+        R.drawable.ic_triangle, R.drawable.ic_hourglass, R.drawable.ic_full_hourglass, R.drawable.ic_rectangle, R.drawable.ic_square,
+        R.drawable.ic_inverted_triangle, R.drawable.ic_triangle, R.drawable.ic_column, R.drawable.ic_trapezium, R.drawable.ic_circle, R.drawable.ic_oval
+    )
+
+
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,6 +93,10 @@ class RoleSettingActivity : AppCompatActivity() {
         val name = selectedUser?.name
         userId = selectedUser?.id
 
+        documentId = intent.getStringExtra("documentId")
+        Log.d("RoleSettingActivity", "Received documentId: $documentId")
+
+
         // Fetch user details from Firestore based on userId
         fetchUserDetailsFromFirestore(userId)
 
@@ -75,24 +104,26 @@ class RoleSettingActivity : AppCompatActivity() {
     }
 
     private fun fetchUserDetailsFromFirestore(userId: String?) {
-        // Ensure the userId is not null or empty
+        // Ensure the userId and documentId are valid
         if (userId.isNullOrEmpty()) {
             Log.e("RoleSettingActivity", "User ID is null or empty")
             return
         }
 
-        // Get the reference to the Firestore collection
-        val userRef = FirebaseFirestore.getInstance().collection("Dressify_users")
+        if (documentId.isNullOrEmpty()) {
+            Log.e("RoleSettingActivity", "Document ID is null or empty")
+            return
+        }
 
-        // Query Firestore for the document where id matches userId
+        // Reference to the specific document in Firestore
+        val userRef = FirebaseFirestore.getInstance()
+            .collection("Dressify_users")
+            .document(documentId!!)
+
         userRef.get()
-            .addOnSuccessListener { documents ->
-                // Loop through all documents
-                for (document in documents) {
-                    // Get the "names" list from the document
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
                     val namesList = document.get("names") as? List<Map<String, Any>>
-
-                    // If "namesList" exists and is not empty
                     namesList?.forEach { nameDetails ->
                         val id = nameDetails["id"] as? String
 
@@ -102,36 +133,82 @@ class RoleSettingActivity : AppCompatActivity() {
                             val gender = nameDetails["gender"] as? String
                             val age = nameDetails["age"] as? String
                             val emoji = nameDetails["emoji"] as? String
+                            val skinColour = nameDetails["skinColour"] as? String
+                            val skinType = nameDetails["skinType"] as? String
+                            val height = nameDetails["height"] as? String
 
-                            // Assign the values to the global variables
+                            Log.d("RoleSettingActivity", "Fetched user details: name=$name, id=$id, gender=$gender, age=$age, emoji=$emoji")
+
+                            // Assign values to global variables
                             userGender = gender
                             userAge = age
                             userEmoji = emoji
+                            userSkinColour = skinColour
+                            userSkinType = skinType
+                            userHeight = height
 
-                            // Update UI elements
+
+                            // Update the UI with fetched details
                             updateUIWithUserDetails()
-                            return@forEach // Exit the loop once the user is found
+
+                            return@forEach  // exit loop after finding matching user
                         }
                     }
+                } else {
+                    Log.e("RoleSettingActivity", "Document not found for ID: $documentId")
                 }
             }
             .addOnFailureListener { exception ->
-                // Log failure if there is any issue with fetching data
                 Log.e("RoleSettingActivity", "Error fetching user details: ", exception)
             }
     }
 
 
+
     private fun updateUIWithUserDetails() {
         // Log the values to check if they're being fetched correctly
-        Log.d("RoleSettingActivity", "User Age: $userAge")
 
-        val userAgeToDisplay = userAge ?: "Not available"
-        Toast.makeText(this, "User Age: $userAgeToDisplay", Toast.LENGTH_SHORT).show()
 
         // Set the age in the EditText
+        val userAgeToDisplay = userAge ?: "Not available"
         findViewById<EditText>(R.id.editTextAge).setText(userAgeToDisplay)
+
+        // Find RadioGroup and its RadioButtons
+        val genderRadioGroup = findViewById<RadioGroup>(R.id.genderRadioGroup)
+        val radioMale = findViewById<RadioButton>(R.id.radioMale)
+        val radioFemale = findViewById<RadioButton>(R.id.radioFemale)
+        val radioOther = findViewById<RadioButton>(R.id.radioOther)
+
+        // Set selected RadioButton based on userGender value
+        when (userGender) {
+            "Male" -> genderRadioGroup.check(radioMale.id)
+            "Female" -> genderRadioGroup.check(radioFemale.id)
+            "Other" -> genderRadioGroup.check(radioOther.id)
+            else -> genderRadioGroup.clearCheck() // if gender is null/unknown
+        }
+
+        // Set the height in the EditText
+        findViewById<EditText>(R.id.editTextHeight).setText(userHeight ?: "Not available")
+
+        // Set skin colour in the Spinner using the existing setup method
+        // Assuming setupSkinColourSpinner has been called already to initialize the spinner
+        userSkinColour?.let {
+            val position = skinColours.indexOf(it)
+            if (position != -1) {
+                skinColourSpinner.setSelection(position)
+            }
+        }
+
+        // Set skin type in the Spinner using the existing setup method
+        // Assuming setupSkinTypeSpinner has been called already to initialize the spinner
+        userSkinType?.let {
+            val position = skinTypes.indexOf(it)
+            if (position != -1) {
+                skinTypeSpinner.setSelection(position)
+            }
+        }
     }
+
 
     private fun logout() {
         // Sign out from Firebase
@@ -161,13 +238,6 @@ class RoleSettingActivity : AppCompatActivity() {
     }
 
     private fun setupSkinColourSpinner() {
-        val skinColours = listOf(
-            "Very Fair", "Fair", "Medium Fair", "Medium", "Medium Dark", "Dark", "Very Dark"
-        )
-        val skinColourHexCodes = listOf(
-            0xFFFFE0BD.toInt(), 0xFFEECD9C.toInt(), 0xFFCEAA88.toInt(), 0xFFBE8C63.toInt(),
-            0xFF8D5524.toInt(), 0xFF7D451A.toInt(), 0xFF5C3317.toInt()
-        )
         skinColourSpinner.adapter = SkinColourAdapter(this, skinColours, skinColourHexCodes)
 
         photoPreviewLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -182,16 +252,6 @@ class RoleSettingActivity : AppCompatActivity() {
     }
 
     private fun setupSkinTypeSpinner() {
-        val skinTypes = listOf(
-            "Petite", "Column Female", "Inverted Triangle Female", "Apple", "Brick",
-            "Pear", "Hourglass", "Full Hourglass", "Rectangle", "Square",
-            "Inverted Triangle Male", "Triangle", "Column Male", "Trapezium", "Circle", "Oval"
-        )
-        val skinTypeIcons = listOf(
-            R.drawable.ic_rectangle, R.drawable.ic_column, R.drawable.ic_inverted_triangle, R.drawable.ic_apple, R.drawable.ic_rectangle,
-            R.drawable.ic_triangle, R.drawable.ic_hourglass, R.drawable.ic_full_hourglass, R.drawable.ic_rectangle, R.drawable.ic_square,
-            R.drawable.ic_inverted_triangle, R.drawable.ic_triangle, R.drawable.ic_column, R.drawable.ic_trapezium, R.drawable.ic_circle, R.drawable.ic_oval
-        )
         skinTypeSpinner.adapter = SkinTypeAdapter(this, skinTypes, skinTypeIcons)
     }
 

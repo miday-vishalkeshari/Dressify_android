@@ -102,9 +102,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun checkIfUserExists(account: GoogleSignInAccount) {
-        // Get user's email and name from the Google account
         val email = account.email ?: return
-        val name = account.displayName ?: "No Name"  // Default to "No Name" if displayName is null
+        val name = account.displayName ?: "No Name"
 
         val usersCollection = db.collection("Dressify_users")
 
@@ -113,12 +112,15 @@ class LoginActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { querySnapshot ->
                 if (querySnapshot.isEmpty) {
-                    // If the user doesn't exist, create a new document with the email and name
+                    // User doesn't exist — create new document
                     createUserDocument(email, name)
                 } else {
-                    // User exists, proceed to main activity
-                    Log.d("LoginActivity", "User already exists, proceeding...")
-                    navigateToMainActivity()
+                    // User exists, get their document ID
+                    val documentId = querySnapshot.documents.first().id
+                    Log.d("LoginActivity", "User already exists with ID: $documentId")
+
+                    // Pass documentId to MainActivity
+                    navigateToMainActivity(documentId)
                 }
             }
             .addOnFailureListener { exception ->
@@ -126,26 +128,35 @@ class LoginActivity : AppCompatActivity() {
             }
     }
 
+
     private fun createUserDocument(email: String, name: String) {
         val usersCollection = db.collection("Dressify_users")
 
-        // Create a map for this name with extra fields
+        // Generate a unique ID based on the current time
+        val uniqueId = System.currentTimeMillis().toString()
+
         val nameDetails = hashMapOf(
+            "id" to uniqueId,
             "name" to name,
-            "age" to "",              // can be empty or set default
+            "age" to "",
             "gender" to "",
-            "emoji" to ""  // empty list for now
+            "emoji" to "",
+            "skinColour" to "",
+            "skinType" to "",
+            "height" to "",
         )
 
         val newUser = hashMapOf(
             "email" to email,
-            "names" to listOf(nameDetails)  // a list of maps
+            "names" to listOf(nameDetails)
         )
 
         usersCollection.add(newUser)
             .addOnSuccessListener { documentReference ->
                 Log.d("LoginActivity", "New user document created with ID: ${documentReference.id}")
-                navigateToMainActivity()
+
+                // Pass new documentId to MainActivity
+                navigateToMainActivity(documentReference.id)
             }
             .addOnFailureListener { exception ->
                 Log.e("LoginActivity", "Error creating user document: ${exception.message}")
@@ -153,10 +164,15 @@ class LoginActivity : AppCompatActivity() {
     }
 
 
-    private fun navigateToMainActivity() {
-        // Navigate to the main activity after successful login and Firestore check
-        startActivity(Intent(this, MainActivity::class.java))
+
+
+
+    private fun navigateToMainActivity(documentId: String) {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("documentId", documentId)
+        startActivity(intent)
         finish()
     }
+
 
 }
