@@ -3,6 +3,7 @@ package com.example.dressify
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +22,7 @@ class ImageDetailActivity : AppCompatActivity() {
     private lateinit var imageDescription: TextView
     private lateinit var imageSource: TextView
     private lateinit var db: FirebaseFirestore
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +47,7 @@ class ImageDetailActivity : AppCompatActivity() {
         imageTitle = findViewById(R.id.imageTitle)
         imageDescription = findViewById(R.id.imageDescription)
         imageSource = findViewById(R.id.imageSource)
+
     }
 
     private fun initializeFirestore() {

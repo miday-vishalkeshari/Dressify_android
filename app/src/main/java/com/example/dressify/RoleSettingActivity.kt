@@ -80,6 +80,12 @@ class RoleSettingActivity : AppCompatActivity() {
         logoutButton.setOnClickListener {
             logout()
         }
+
+        // Set click listener for wishlist icon
+        findViewById<ImageView>(R.id.wishlistIcon).setOnClickListener {
+            val intent = Intent(this, WishlistActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun initializeViews() {

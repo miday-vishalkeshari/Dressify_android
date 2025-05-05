@@ -16,15 +16,34 @@
         android:showDividers="middle"
         android:dividerPadding="8dp">
 
-        <!-- Heading -->
-        <TextView
-            android:id="@+id/roleSettingsTitle"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Set Your Role"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp">
+
+            <!-- Heading -->
+            <TextView
+                android:id="@+id/roleSettingsTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Set Your Role"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true" />
+
+            <!-- Wishlist Icon -->
+            <ImageView
+                android:id="@+id/wishlistIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_liked"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/circle_background"
+                android:layout_centerVertical="true"
+                android:contentDescription="Wishlist Icon"
+                android:padding="2dp" />
+        </RelativeLayout>
 
         <!-- Icon Selection Card -->
         <androidx.cardview.widget.CardView
