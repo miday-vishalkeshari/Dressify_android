@@ -19,10 +19,10 @@ class MediumImageAdapter(
 ) : RecyclerView.Adapter<MediumImageAdapter.ImageViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
-        val layoutId = if (activityType == "MainActivity") {
-            R.layout.medium_item_image_mainactivity // Layout for MainActivity
-        } else {
-            R.layout.medium_item_image_imagedetailactivity // Layout for ImageDetailActivity
+        val layoutId = when (activityType) {
+            "MainActivity" -> R.layout.medium_item_image_mainactivity // Layout for MainActivity
+            "WishlistActivity" -> R.layout.medium_item_image_mainactivity // Layout for WishlistActivity
+            else -> R.layout.medium_item_image_imagedetailactivity // Default layout
         }
         val view = LayoutInflater.from(context).inflate(layoutId, parent, false)
         return ImageViewHolder(view)

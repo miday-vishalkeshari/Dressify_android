@@ -42,7 +42,7 @@ class BigImageAdapter(
         }
 
 
-
+//*****************do perform any action with firebase only when you leave the activity till set it true or false to avoid multiple expense of write at db
         holder.addToWishlistIcon.setOnClickListener {
             if (isAddedToWishlist) {
                 // Action for removing from wishlist

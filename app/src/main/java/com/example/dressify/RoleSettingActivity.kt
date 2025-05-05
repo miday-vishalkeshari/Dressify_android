@@ -84,6 +84,7 @@ class RoleSettingActivity : AppCompatActivity() {
         // Set click listener for wishlist icon
         findViewById<ImageView>(R.id.wishlistIcon).setOnClickListener {
             val intent = Intent(this, WishlistActivity::class.java)
+            intent.putExtra("documentId", documentId)
             startActivity(intent)
         }
     }
