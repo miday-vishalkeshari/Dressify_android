@@ -12,9 +12,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.dressify.adapters.BigImageAdapter
 import com.example.dressify.adapters.MediumImageAdapter
 import com.example.dressify.models.ImageItem
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
-class ImageDetailActivity : AppCompatActivity() {
+class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionListener {
 
     private lateinit var fullImageRecyclerView: RecyclerView
     private lateinit var matchingRecyclerView: RecyclerView
@@ -22,6 +23,9 @@ class ImageDetailActivity : AppCompatActivity() {
     private lateinit var imageDescription: TextView
     private lateinit var imageSource: TextView
     private lateinit var db: FirebaseFirestore
+    private lateinit var collectionName: String
+    private lateinit var docId: String
+    private lateinit var userdocumentId: String
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,8 +36,9 @@ class ImageDetailActivity : AppCompatActivity() {
         initializeFirestore()
 
         val clickedImageUrl = intent.getStringExtra("imageList")
-        val collectionName = intent.getStringExtra("collectionName") ?: "tshirts"
-        val docId = intent.getStringExtra("docId")
+        collectionName = intent.getStringExtra("collectionName") ?: "tshirts"
+        docId = intent.getStringExtra("docId").toString()
+        userdocumentId = intent.getStringExtra("userdocumentId").toString()
 
         setupFullImageRecyclerView(clickedImageUrl, docId, collectionName)
         fetchImageDetails(docId, collectionName)
@@ -48,16 +53,51 @@ class ImageDetailActivity : AppCompatActivity() {
         imageDescription = findViewById(R.id.imageDescription)
         imageSource = findViewById(R.id.imageSource)
 
+
+
+//        val imageItemList = listOf("image_url_1", "image_url_2") // Example data
+//        val adapter = BigImageAdapter(this, imageItemList, "docId", "collectionName", this)
+//        val recyclerView: RecyclerView = findViewById(R.id.fullImageRecyclerView)
+//        recyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)
+//        recyclerView.adapter = adapter
+
     }
 
     private fun initializeFirestore() {
         db = FirebaseFirestore.getInstance()
     }
 
+    override fun onAddToWishlist(docId: String, collectionName: String, isAdded: Boolean) {
+        val userDocRef = db.collection("Dressify_users").document(userdocumentId)
+        val wishlistItem = mapOf(
+            "dress_type" to collectionName,
+            "cloth_item" to docId
+        )
+
+        val updateField = if (isAdded) {
+            mapOf("wishlist" to FieldValue.arrayUnion(wishlistItem))
+        } else {
+            mapOf("wishlist" to FieldValue.arrayRemove(wishlistItem))
+        }
+
+        userDocRef.update(updateField)
+            .addOnSuccessListener {
+                Toast.makeText(this, if (isAdded) "Added to Wishlist" else "Removed from Wishlist", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { exception ->
+                Log.e("ImageDetailActivity", "Error updating wishlist: ${exception.message}")
+            }
+    }
+
+    override fun onLinkClicked(docId: String, collectionName: String) {
+        Toast.makeText(this, "Link clicked for $docId in $collectionName", Toast.LENGTH_SHORT).show()
+        // Add your logic for handling the link click here
+    }
+
     private fun setupFullImageRecyclerView(imageUrl: String?, docId: String?, collectionName: String) {
         val fullImageList = arrayListOf<String>().apply { imageUrl?.let { add(it) } }
         fullImageRecyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)
-        fullImageRecyclerView.adapter = BigImageAdapter(this, fullImageList, docId.orEmpty(), collectionName)
+        fullImageRecyclerView.adapter = BigImageAdapter(this, fullImageList, docId.orEmpty(), collectionName, this)
     }
 
     private fun fetchImageDetails(docId: String?, collectionName: String) {
@@ -128,7 +168,7 @@ class ImageDetailActivity : AppCompatActivity() {
 
     private fun setupMatchingAdapter(matchingItems: List<ImageItem>) {
         matchingRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        matchingRecyclerView.adapter = MediumImageAdapter(this, matchingItems, "MediumImageAdapter")
+        matchingRecyclerView.adapter = MediumImageAdapter(this, matchingItems, "MediumImageAdapter",userdocumentId)
     }
 
     private fun showToast(message: String) {

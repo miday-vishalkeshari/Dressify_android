@@ -16,10 +16,16 @@ class BigImageAdapter(
     private val context: Context,
     private val imageItemList: List<String>,
     private val docId: String,
-    private val collectionName: String
+    private val collectionName: String,
+    private val listener: OnItemActionListener
 ) : RecyclerView.Adapter<BigImageAdapter.ImageViewHolder>() {
 
     private var isAddedToWishlist = false
+
+    interface OnItemActionListener {
+        fun onAddToWishlist(docId: String, collectionName: String, isAdded: Boolean)
+        fun onLinkClicked(docId: String, collectionName: String)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.big_image_item, parent, false)
@@ -32,7 +38,6 @@ class BigImageAdapter(
             .load(currentItem)
             .into(holder.imageView)
 
-        // Handle click on the main image
         holder.imageView.setOnClickListener {
             val intent = Intent(context, FullScreenImageActivity::class.java)
             intent.putExtra("image_url", currentItem)
@@ -41,26 +46,16 @@ class BigImageAdapter(
             context.startActivity(intent)
         }
 
-
-//*****************do perform any action with firebase only when you leave the activity till set it true or false to avoid multiple expense of write at db
         holder.addToWishlistIcon.setOnClickListener {
-            if (isAddedToWishlist) {
-                // Action for removing from wishlist
-                holder.addToWishlistIcon.setImageResource(R.drawable.ic_unliked) // Replace with your "remove" icon
-                Toast.makeText(context, "Removed from Wishlist", Toast.LENGTH_SHORT).show()
-            } else {
-                // Action for adding to wishlist
-                holder.addToWishlistIcon.setImageResource(R.drawable.ic_liked) // Replace with your "add" icon
-                Toast.makeText(context, "Added to Wishlist", Toast.LENGTH_SHORT).show()
-            }
-            isAddedToWishlist = !isAddedToWishlist // Toggle the state
+            isAddedToWishlist = !isAddedToWishlist
+            holder.addToWishlistIcon.setImageResource(
+                if (isAddedToWishlist) R.drawable.ic_liked else R.drawable.ic_unliked
+            )
+            listener.onAddToWishlist(docId, collectionName, isAddedToWishlist)
         }
 
-
-        // Handle click on the "Link" icon
         holder.linkIcon.setOnClickListener {
-            Toast.makeText(context, "Link clicked", Toast.LENGTH_SHORT).show()
-            // Add your logic for handling the link click here
+            listener.onLinkClicked(docId, collectionName)
         }
     }
 

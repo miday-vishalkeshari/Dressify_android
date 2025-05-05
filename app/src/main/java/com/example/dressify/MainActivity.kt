@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
     private var isLoading = false
     private val pageSize = 2  // number of images to load at a time
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
-    private var documentId: String? = null
+    private var userdocumentId: String? = null
 
 
 
@@ -59,8 +59,8 @@ class MainActivity : AppCompatActivity() {
         // Initialize Firestore
         db = FirebaseFirestore.getInstance()
 
-        documentId = intent.getStringExtra("documentId")
-        Log.d("MainActivity", "Received documentId: $documentId")
+        userdocumentId = intent.getStringExtra("documentId")
+        Log.d("MainActivity", "Received documentId: $userdocumentId")
 
         // Initialize RecyclerView and the image list
         recyclerView = findViewById(R.id.imageRecyclerView)
@@ -184,7 +184,8 @@ class MainActivity : AppCompatActivity() {
 
                 val intent = Intent(this@MainActivity, RoleSettingActivity::class.java)
                 intent.putExtra("selected_user", selectedUser)
-                intent.putExtra("documentId", documentId)
+                intent.putExtra("userdocumentId", userdocumentId)
+                Log.d("MainActivity", "Passing documentId: $userdocumentId")
                 startActivity(intent)
 
                 userDropdown.post { userDropdown.performClick() }
@@ -204,7 +205,8 @@ class MainActivity : AppCompatActivity() {
                         userDropdown.setSelection(0)
                         val intent = Intent(this@MainActivity, RoleSettingActivity::class.java)
                         intent.putExtra("selected_user", selectedRole)
-                        intent.putExtra("documentId", documentId)
+                        intent.putExtra("userdocumentId", userdocumentId)
+                        Log.d("MainActivity", "Passing documentId: $userdocumentId")
                         startActivity(intent)
                     }
                     else{
@@ -223,7 +225,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun fetchUserRolesFromFirestore(onComplete: (List<UserRole>) -> Unit) {
         // Check if documentId is available
-        val docId = documentId
+        val docId = userdocumentId
         if (docId.isNullOrEmpty()) {
             Log.e("MainActivity", "Document ID is null or empty.")
             onComplete(emptyList())
@@ -428,7 +430,9 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun setupAdapter() {
-        val mediumImageAdapter = MediumImageAdapter(this, imageList, "MainActivity")
+        val mediumImageAdapter = MediumImageAdapter(this, imageList, "MainActivity",
+            userdocumentId.toString()
+        )
         recyclerView.adapter = mediumImageAdapter
 
         // Add scroll listener to manage load more trigger

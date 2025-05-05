@@ -15,7 +15,8 @@ import com.example.dressify.R
 class MediumImageAdapter(
     private val context: Context,
     private val imageItemList: List<ImageItem>,
-    private val activityType: String // Pass activity type as a string
+    private val activityType: String,
+    private val userdocumentId: String
 ) : RecyclerView.Adapter<MediumImageAdapter.ImageViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
@@ -42,6 +43,7 @@ class MediumImageAdapter(
             intent.putExtra("imageList", currentItem.imageUrl)
             intent.putExtra("collectionName", currentItem.collectionName)
             intent.putExtra("docId", currentItem.documentId)
+            intent.putExtra("userdocumentId", userdocumentId)
             context.startActivity(intent)
         }
     }

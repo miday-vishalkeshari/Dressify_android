@@ -11,7 +11,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 class WishlistActivity : AppCompatActivity() {
 
-    private var documentId: String? = null
+    private var userdocumentId: String? = null
     private lateinit var db: FirebaseFirestore
     private lateinit var recyclerView: RecyclerView
 
@@ -23,8 +23,8 @@ class WishlistActivity : AppCompatActivity() {
         db = FirebaseFirestore.getInstance()
 
         // Fetch the documentId from the Intent
-        documentId = intent.getStringExtra("documentId")
-        Log.d("WishlistActivity", "Received documentId: $documentId")
+        userdocumentId = intent.getStringExtra("userdocumentId")
+        Log.d("WishlistActivity", "Received documentId: $userdocumentId")
 
         // Initialize RecyclerView
         recyclerView = findViewById(R.id.imageRecyclerView)
@@ -35,12 +35,12 @@ class WishlistActivity : AppCompatActivity() {
     }
 
     private fun fetchWishlist() {
-        if (documentId == null) {
+        if (userdocumentId == null) {
             Log.e("WishlistActivity", "Document ID is null")
             return
         }
 
-        db.collection("Dressify_users").document(documentId!!)
+        db.collection("Dressify_users").document(userdocumentId!!)
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
@@ -90,6 +90,8 @@ class WishlistActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView(imageItemList: List<ImageItem>) {
-        recyclerView.adapter = MediumImageAdapter(this, imageItemList, "WishlistActivity")
+        recyclerView.adapter = MediumImageAdapter(this, imageItemList, "WishlistActivity",
+            userdocumentId.toString()
+        )
     }
 }

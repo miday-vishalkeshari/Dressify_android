@@ -34,10 +34,10 @@ class RoleSettingActivity : AppCompatActivity() {
     private var selectedIconResId: Int? = null
     private lateinit var logoutButton: Button
     private var userId: String? = null
-    private var userGender: String? = null  // Variable to hold gender
-    private var userAge: String? = null  // Variable to hold age
-    private var userEmoji: String? = null  // Variable to hold emoji
-    private var documentId: String? = null
+    private var userGender: String? = null
+    private var userAge: String? = null
+    private var userEmoji: String? = null
+    private var userdocumentId: String? = null
     private var userSkinColour: String? = null
     private var userSkinType: String? = null
     private var userHeight: String? = null
@@ -84,7 +84,8 @@ class RoleSettingActivity : AppCompatActivity() {
         // Set click listener for wishlist icon
         findViewById<ImageView>(R.id.wishlistIcon).setOnClickListener {
             val intent = Intent(this, WishlistActivity::class.java)
-            intent.putExtra("documentId", documentId)
+            intent.putExtra("userdocumentId", userdocumentId)
+            Log.d("RoleSettingActivity", "Sending documentId: $userdocumentId")
             startActivity(intent)
         }
     }
@@ -100,8 +101,8 @@ class RoleSettingActivity : AppCompatActivity() {
         val name = selectedUser?.name
         userId = selectedUser?.id
 
-        documentId = intent.getStringExtra("documentId")
-        Log.d("RoleSettingActivity", "Received documentId: $documentId")
+        userdocumentId = intent.getStringExtra("userdocumentId")
+        Log.d("RoleSettingActivity", "Received documentId: $userdocumentId")
 
 
         // Fetch user details from Firestore based on userId
@@ -117,7 +118,7 @@ class RoleSettingActivity : AppCompatActivity() {
             return
         }
 
-        if (documentId.isNullOrEmpty()) {
+        if (userdocumentId.isNullOrEmpty()) {
             Log.e("RoleSettingActivity", "Document ID is null or empty")
             return
         }
@@ -125,7 +126,7 @@ class RoleSettingActivity : AppCompatActivity() {
         // Reference to the specific document in Firestore
         val userRef = FirebaseFirestore.getInstance()
             .collection("Dressify_users")
-            .document(documentId!!)
+            .document(userdocumentId!!)
 
         userRef.get()
             .addOnSuccessListener { document ->
@@ -162,7 +163,7 @@ class RoleSettingActivity : AppCompatActivity() {
                         }
                     }
                 } else {
-                    Log.e("RoleSettingActivity", "Document not found for ID: $documentId")
+                    Log.e("RoleSettingActivity", "Document not found for ID: $userdocumentId")
                 }
             }
             .addOnFailureListener { exception ->
