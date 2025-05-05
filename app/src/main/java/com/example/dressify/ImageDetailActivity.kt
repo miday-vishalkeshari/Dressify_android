@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.dressify.adapters.BigImageAdapter
 import com.example.dressify.adapters.MediumImageAdapter
 import com.example.dressify.models.ImageItem
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -26,6 +27,9 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
     private lateinit var collectionName: String
     private lateinit var docId: String
     private lateinit var userdocumentId: String
+
+    private val wishlistChanges = mutableListOf<Map<String, String>>()
+    private val wishlistRemovals = mutableListOf<Map<String, String>>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,31 +72,58 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
     }
 
     override fun onAddToWishlist(docId: String, collectionName: String, isAdded: Boolean) {
-        val userDocRef = db.collection("Dressify_users").document(userdocumentId)
         val wishlistItem = mapOf(
             "dress_type" to collectionName,
             "cloth_item" to docId
         )
 
-        val updateField = if (isAdded) {
-            mapOf("wishlist" to FieldValue.arrayUnion(wishlistItem))
+        if (isAdded) {
+            wishlistChanges.add(wishlistItem)
+            wishlistRemovals.remove(wishlistItem) // Ensure no duplicate removals
         } else {
-            mapOf("wishlist" to FieldValue.arrayRemove(wishlistItem))
+            wishlistRemovals.add(wishlistItem)
+            wishlistChanges.remove(wishlistItem) // Ensure no duplicate additions
         }
+    }
 
-        userDocRef.update(updateField)
-            .addOnSuccessListener {
-                Toast.makeText(this, if (isAdded) "Added to Wishlist" else "Removed from Wishlist", Toast.LENGTH_SHORT).show()
+    override fun onPause() {
+        super.onPause()
+        updateWishlistOnFirestore()
+    }
+
+    private fun updateWishlistOnFirestore() {
+        var userDocRef: DocumentReference = db.collection("Dressify_users").document(userdocumentId)
+
+        if (wishlistChanges.isNotEmpty() || wishlistRemovals.isNotEmpty()) {
+            val updates = mutableMapOf<String, Any>()
+
+            if (wishlistChanges.isNotEmpty()) {
+                updates["wishlist"] = FieldValue.arrayUnion(*wishlistChanges.toTypedArray())
             }
-            .addOnFailureListener { exception ->
-                Log.e("ImageDetailActivity", "Error updating wishlist: ${exception.message}")
+            if (wishlistRemovals.isNotEmpty()) {
+                updates["wishlist"] = FieldValue.arrayRemove(*wishlistRemovals.toTypedArray())
             }
+
+            userDocRef.update(updates)
+                .addOnSuccessListener {
+                    Log.d("ImageDetailActivity", "Wishlist updated successfully")
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("ImageDetailActivity", "Error updating wishlist: ${exception.message}")
+                }
+
+            // Clear local changes after update
+            wishlistChanges.clear()
+            wishlistRemovals.clear()
+        }
     }
 
     override fun onLinkClicked(docId: String, collectionName: String) {
         Toast.makeText(this, "Link clicked for $docId in $collectionName", Toast.LENGTH_SHORT).show()
         // Add your logic for handling the link click here
     }
+
+
 
     private fun setupFullImageRecyclerView(imageUrl: String?, docId: String?, collectionName: String) {
         val fullImageList = arrayListOf<String>().apply { imageUrl?.let { add(it) } }

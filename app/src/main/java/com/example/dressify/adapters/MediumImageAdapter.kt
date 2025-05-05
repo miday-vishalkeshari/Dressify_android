@@ -15,7 +15,7 @@ import com.example.dressify.R
 class MediumImageAdapter(
     private val context: Context,
     private val imageItemList: List<ImageItem>,
-    private val activityType: String,
+    private val activityType: String,//this is for name from where this is called
     private val userdocumentId: String
 ) : RecyclerView.Adapter<MediumImageAdapter.ImageViewHolder>() {
 
@@ -36,15 +36,22 @@ class MediumImageAdapter(
             .load(currentItem.imageUrl)
             .into(holder.imageView)
 
+        // Show or hide delete icon based on activityType
+        if (activityType == "WishlistActivity") {
+            holder.deleteIcon.visibility = View.VISIBLE
+        } else {
+            holder.deleteIcon.visibility = View.GONE
+        }
 
-
-        holder.itemView.setOnClickListener {
-            val intent = Intent(context, ImageDetailActivity::class.java)
-            intent.putExtra("imageList", currentItem.imageUrl)
-            intent.putExtra("collectionName", currentItem.collectionName)
-            intent.putExtra("docId", currentItem.documentId)
-            intent.putExtra("userdocumentId", userdocumentId)
-            context.startActivity(intent)
+        if (activityType != "WishlistActivity") {
+            holder.itemView.setOnClickListener {
+                val intent = Intent(context, ImageDetailActivity::class.java)
+                intent.putExtra("imageList", currentItem.imageUrl)
+                intent.putExtra("collectionName", currentItem.collectionName)
+                intent.putExtra("docId", currentItem.documentId)
+                intent.putExtra("userdocumentId", userdocumentId)
+                context.startActivity(intent)
+            }
         }
     }
 
@@ -52,5 +59,6 @@ class MediumImageAdapter(
 
     class ImageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.imageView)
+        val deleteIcon: ImageView = itemView.findViewById(R.id.deleteIcon) // Reference to delete icon
     }
 }

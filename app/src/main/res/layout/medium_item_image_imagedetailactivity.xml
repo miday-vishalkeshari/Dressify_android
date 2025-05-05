@@ -22,8 +22,22 @@
             android:scaleType="centerCrop"
             android:layout_gravity="center"
             android:background="@drawable/all_rounded_corners"
-        android:src="@drawable/dummy_dress_icon"
-        android:clipToOutline="true"/>  <!-- Clip the image to outline -->
+            android:src="@drawable/dummy_dress_icon"
+            android:clipToOutline="true" />
+
+        <!-- Delete Icon -->
+        <ImageView
+            android:id="@+id/deleteIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="8dp"
+            android:src="@drawable/ic_delete"
+            android:background="@drawable/circle_background"
+            android:contentDescription="delete_icon"
+            android:visibility="gone"
+            android:padding="2dp" />
+
 
     </FrameLayout>
 </androidx.cardview.widget.CardView>
