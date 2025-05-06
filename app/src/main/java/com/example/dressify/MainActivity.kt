@@ -249,7 +249,7 @@ class MainActivity : AppCompatActivity() {
                         Log.d("MainActivity", "Fetched id: $id")
 
                         if (name.isNullOrEmpty()) {
-                            name ="UserName"
+                            name ="User"
                         }
 
                         if (!name.isNullOrEmpty() && !id.isNullOrEmpty()) {

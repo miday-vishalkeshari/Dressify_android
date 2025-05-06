@@ -23,7 +23,6 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
     private lateinit var matchingRecyclerView: RecyclerView
     private lateinit var imageTitle: TextView
     private lateinit var imageDescription: TextView
-    private lateinit var imageSource: TextView
     private lateinit var db: FirebaseFirestore
     private lateinit var collectionName: String
     private lateinit var docId: String
@@ -57,7 +56,7 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
         matchingRecyclerView = findViewById(R.id.matchingRecyclerView)
         imageTitle = findViewById(R.id.imageTitle)
         imageDescription = findViewById(R.id.imageDescription)
-        imageSource = findViewById(R.id.imageSource)
+
 
 
 
@@ -149,7 +148,6 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
             .addOnSuccessListener { document ->
                 document?.let {
                     imageTitle.text = it.getString("brand") ?: "No Title"
-                    imageSource.text = "Source: ${it.getString("link") ?: "N/A"}"
 
                     // Store the link value in the global variable
                     productLink = it.getString("link")

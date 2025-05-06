@@ -57,15 +57,7 @@
                 android:textColor="#777777"
                 android:padding="4dp"/>
 
-            <!-- Image Source/Details (Optional) -->
-            <TextView
-                android:id="@+id/imageSource"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Source: Unsplash"
-                android:textSize="12sp"
-                android:textColor="#0B2FF4"
-                android:padding="4dp"/>
+
         </LinearLayout>
     </LinearLayout>
 </android.widget.ScrollView>

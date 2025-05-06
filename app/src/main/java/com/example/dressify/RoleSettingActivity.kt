@@ -13,6 +13,7 @@ import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.dressify.adapters.IconGridAdapter
@@ -22,6 +23,8 @@ import com.example.dressify.models.UserRole
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.ByteArrayOutputStream
+import java.util.UUID
+import com.google.firebase.firestore.FieldValue
 
 class RoleSettingActivity : AppCompatActivity() {
 
@@ -69,25 +72,13 @@ class RoleSettingActivity : AppCompatActivity() {
         setContentView(R.layout.activity_role_setting)
 
         initializeViews()
-        setupIconGrid()
         setupSkinColourSpinner()
         setupSkinTypeSpinner()
         setupFocusAutoScroll()
         setupCameraLauncher()
         setupBodyTypeInfoLauncher()
 
-        // Setup the logout button
-        logoutButton.setOnClickListener {
-            logout()
-        }
 
-        // Set click listener for wishlist icon
-        findViewById<ImageView>(R.id.wishlistIcon).setOnClickListener {
-            val intent = Intent(this, WishlistActivity::class.java)
-            intent.putExtra("userdocumentId", userdocumentId)
-            Log.d("RoleSettingActivity", "Sending documentId: $userdocumentId")
-            startActivity(intent)
-        }
     }
 
     private fun initializeViews() {
@@ -98,17 +89,92 @@ class RoleSettingActivity : AppCompatActivity() {
         logoutButton = findViewById(R.id.logoutButton)
 
         val selectedUser = intent.getSerializableExtra("selected_user") as? UserRole
-        val name = selectedUser?.name
+        var name = selectedUser?.name
         userId = selectedUser?.id
 
         userdocumentId = intent.getStringExtra("userdocumentId")
         Log.d("RoleSettingActivity", "Received documentId: $userdocumentId")
 
 
-        // Fetch user details from Firestore based on userId
-        fetchUserDetailsFromFirestore(userId)
+        findViewById<Button>(R.id.saveButton).apply {
+            text = if (name == "Add User") "Add New User" else "Update User Details"
+            setOnClickListener {
+                if (name == "Add User") {
+                    addNewUserToFirebase()
+                } else {
+                    updateUserDetailsInArray()
+                }
+            }
+        }
+        // Hide the delete button if name is "Add User"
+        findViewById<CardView>(R.id.deleteCurrentUserCardview).visibility =
+            if (name == "Add User") View.GONE else View.VISIBLE
 
-        findViewById<EditText>(R.id.editTextName).setText(name ?: "")
+
+        if (name == "Add User") {
+            findViewById<EditText>(R.id.editTextName).setText("")
+            setupIconGrid()
+        } else {
+            // Fetch user details from Firestore based on userId
+            fetchUserDetailsFromFirestore(userId)
+            findViewById<EditText>(R.id.editTextName).setText(name ?: "")
+        }
+
+        // Set click listener for wishlist icon
+        findViewById<ImageView>(R.id.wishlistIcon).setOnClickListener {
+            val intent = Intent(this, WishlistActivity::class.java)
+            intent.putExtra("userdocumentId", userdocumentId)
+            Log.d("RoleSettingActivity", "Sending documentId: $userdocumentId")
+            startActivity(intent)
+        }
+
+
+        // Setup the logout button
+        logoutButton.setOnClickListener {
+            logout()
+        }
+
+    }
+
+
+    private fun addNewUserToFirebase() {
+        if (userdocumentId.isNullOrEmpty()) {
+            Toast.makeText(this, "Document ID is missing", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val userRef = FirebaseFirestore.getInstance()
+            .collection("Dressify_users")
+            .document(userdocumentId!!)
+
+        // Generate a random ID
+        val newId = UUID.randomUUID().toString()
+
+        // Create a new user map
+        val newUserDetails = mapOf(
+            "emoji" to userEmoji,
+            "id" to newId,
+            "name" to findViewById<EditText>(R.id.editTextName).text.toString(),
+            "age" to findViewById<EditText>(R.id.editTextAge).text.toString(),
+            "height" to findViewById<EditText>(R.id.editTextHeight).text.toString(),
+            "gender" to when (findViewById<RadioGroup>(R.id.genderRadioGroup).checkedRadioButtonId) {
+                R.id.radioMale -> "Male"
+                R.id.radioFemale -> "Female"
+                R.id.radioOther -> "Other"
+                else -> null
+            },
+            "skinColour" to (skinColourSpinner.selectedItem?.toString() ?: ""),
+            "skinType" to (skinTypeSpinner.selectedItem?.toString() ?: "")
+        )
+
+        // Add the new user to the array
+        userRef.update("names", FieldValue.arrayUnion(newUserDetails))
+            .addOnSuccessListener {
+                Toast.makeText(this, "New user added successfully", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(this, "Failed to add new user: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun fetchUserDetailsFromFirestore(userId: String?) {
@@ -175,10 +241,10 @@ class RoleSettingActivity : AppCompatActivity() {
 
     private fun updateUIWithUserDetails() {
         // Log the values to check if they're being fetched correctly
-
+        setupIconGrid()
 
         // Set the age in the EditText
-        val userAgeToDisplay = userAge ?: "Not available"
+        val userAgeToDisplay = userAge ?: ""
         findViewById<EditText>(R.id.editTextAge).setText(userAgeToDisplay)
 
         // Find RadioGroup and its RadioButtons
@@ -196,7 +262,7 @@ class RoleSettingActivity : AppCompatActivity() {
         }
 
         // Set the height in the EditText
-        findViewById<EditText>(R.id.editTextHeight).setText(userHeight ?: "Not available")
+        findViewById<EditText>(R.id.editTextHeight).setText(userHeight ?: "")
 
         // Set skin colour in the Spinner using the existing setup method
         // Assuming setupSkinColourSpinner has been called already to initialize the spinner
@@ -215,6 +281,61 @@ class RoleSettingActivity : AppCompatActivity() {
                 skinTypeSpinner.setSelection(position)
             }
         }
+    }
+
+    private fun updateUserDetailsInArray() {
+        if (userdocumentId.isNullOrEmpty() || userId.isNullOrEmpty()) {
+            Toast.makeText(this, "Document ID or User ID is missing", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val userRef = FirebaseFirestore.getInstance()
+            .collection("Dressify_users")
+            .document(userdocumentId!!)
+
+        userRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val namesList = document.get("names") as? MutableList<Map<String, Any>>
+                    if (namesList != null) {
+                        val updatedList = namesList.map { nameDetails ->
+                            if (nameDetails["id"] == userId) {
+                                nameDetails.toMutableMap().apply {
+                                    this["emoji"] = userEmoji as Any
+                                    this["name"] = findViewById<EditText>(R.id.editTextName).text.toString()
+                                    this["age"] = findViewById<EditText>(R.id.editTextAge).text.toString()
+                                    this["height"] = findViewById<EditText>(R.id.editTextHeight).text.toString()
+                                    this["gender"] = when (findViewById<RadioGroup>(R.id.genderRadioGroup).checkedRadioButtonId) {
+                                        R.id.radioMale -> "Male"
+                                        R.id.radioFemale -> "Female"
+                                        R.id.radioOther -> "Other"
+                                        else -> null
+                                    } as Any
+                                    this["skinColour"] = skinColourSpinner.selectedItem?.toString() ?: ""
+                                    this["skinType"] = skinTypeSpinner.selectedItem?.toString() ?: ""
+                                }
+                            } else {
+                                nameDetails
+                            }
+                        }
+
+                        userRef.update("names", updatedList)
+                            .addOnSuccessListener {
+                                Toast.makeText(this, "Details updated successfully", Toast.LENGTH_SHORT).show()
+                            }
+                            .addOnFailureListener { exception ->
+                                Toast.makeText(this, "Failed to update details: ${exception.message}", Toast.LENGTH_SHORT).show()
+                            }
+                    } else {
+                        Toast.makeText(this, "No names list found in the document", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(this, "Document not found", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(this, "Error fetching document: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
 
@@ -237,13 +358,23 @@ class RoleSettingActivity : AppCompatActivity() {
         )
         val adapter = IconGridAdapter(this, iconList)
         iconGridView.adapter = adapter
-        selectedIconResId = iconList[0]
+
+        val iconIndex = userEmoji?.toIntOrNull() ?: 0
+        selectedIconResId = iconList[iconIndex]
+
+
+        // Update UI to reflect the selected icon
+        adapter.updateSelectedPosition(iconIndex)
 
         iconGridView.setOnItemClickListener { _, _, position, _ ->
             selectedIconResId = iconList[position]
+            userEmoji = position.toString()
             adapter.updateSelectedPosition(position)
+
+
         }
     }
+
 
     private fun setupSkinColourSpinner() {
         skinColourSpinner.adapter = SkinColourAdapter(this, skinColours, skinColourHexCodes)
