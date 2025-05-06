@@ -7,7 +7,9 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.dressify.adapters.MediumImageAdapter
 import com.example.dressify.models.ImageItem
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import androidx.appcompat.app.AlertDialog
 
 class WishlistActivity : AppCompatActivity() {
 
@@ -89,9 +91,42 @@ class WishlistActivity : AppCompatActivity() {
             }
     }
 
-    private fun setupRecyclerView(imageItemList: List<ImageItem>) {
-        recyclerView.adapter = MediumImageAdapter(this, imageItemList, "WishlistActivity",
+    private fun setupRecyclerView(imageItemList: MutableList<ImageItem>) {
+        val adapter = MediumImageAdapter(
+            this,
+            imageItemList,
+            "WishlistActivity",
             userdocumentId.toString()
-        )
+        ) { itemToDelete ->
+            // Show confirmation dialog
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle("Confirm Deletion")
+            builder.setMessage("Are you sure you want to remove this item from your wishlist?")
+            builder.setPositiveButton("Yes") { _, _ ->
+                // Create the map to remove
+                val itemToRemove = mapOf(
+                    "cloth_item" to itemToDelete.documentId,
+                    "dress_type" to itemToDelete.collectionName
+                )
+
+                // Remove the item from the wishlist array in Firestore
+                db.collection("Dressify_users").document(userdocumentId!!)
+                    .update("wishlist", FieldValue.arrayRemove(itemToRemove))
+                    .addOnSuccessListener {
+                        // Remove the item from the list and notify the adapter
+                        imageItemList.remove(itemToDelete)
+                        recyclerView.adapter?.notifyDataSetChanged()
+                        Log.d("WishlistActivity", "Item removed from wishlist successfully")
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.e("WishlistActivity", "Error removing item from wishlist: ${exception.message}", exception)
+                    }
+            }
+            builder.setNegativeButton("No") { dialog, _ ->
+                dialog.dismiss() // Dismiss the dialog if the user cancels
+            }
+            builder.create().show()
+        }
+        recyclerView.adapter = adapter
     }
 }

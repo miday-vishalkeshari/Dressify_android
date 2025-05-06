@@ -430,9 +430,26 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun setupAdapter() {
-        val mediumImageAdapter = MediumImageAdapter(this, imageList, "MainActivity",
+        val mediumImageAdapter = MediumImageAdapter(
+            this,
+            imageList,
+            "MainActivity",
             userdocumentId.toString()
-        )
+        ) { itemToDelete ->
+            // Handle delete action
+            db.collection(itemToDelete.collectionName)
+                .document(itemToDelete.documentId)
+                .delete()
+                .addOnSuccessListener {
+                    // Remove the item from the list and notify the adapter
+                    imageList.remove(itemToDelete)
+                    recyclerView.adapter?.notifyDataSetChanged()
+                    Toast.makeText(this, "Item deleted successfully", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { exception ->
+                    Toast.makeText(this, "Error deleting item: ${exception.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
         recyclerView.adapter = mediumImageAdapter
 
         // Add scroll listener to manage load more trigger

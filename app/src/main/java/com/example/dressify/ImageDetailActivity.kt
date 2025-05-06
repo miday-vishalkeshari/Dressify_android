@@ -1,6 +1,7 @@
 package com.example.dressify
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
@@ -27,6 +28,7 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
     private lateinit var collectionName: String
     private lateinit var docId: String
     private lateinit var userdocumentId: String
+    private var productLink: String? = null
 
     private val wishlistChanges = mutableListOf<Map<String, String>>()
     private val wishlistRemovals = mutableListOf<Map<String, String>>()
@@ -119,8 +121,12 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
     }
 
     override fun onLinkClicked(docId: String, collectionName: String) {
-        Toast.makeText(this, "Link clicked for $docId in $collectionName", Toast.LENGTH_SHORT).show()
-        // Add your logic for handling the link click here
+        productLink?.let { link ->
+            val browserIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = android.net.Uri.parse(link)
+            }
+            startActivity(browserIntent)
+        } ?: Toast.makeText(this, "No link available to open", Toast.LENGTH_SHORT).show()
     }
 
 
@@ -130,6 +136,8 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
         fullImageRecyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)
         fullImageRecyclerView.adapter = BigImageAdapter(this, fullImageList, docId.orEmpty(), collectionName, this)
     }
+
+
 
     private fun fetchImageDetails(docId: String?, collectionName: String) {
         if (docId == null) {
@@ -142,6 +150,9 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
                 document?.let {
                     imageTitle.text = it.getString("brand") ?: "No Title"
                     imageSource.text = "Source: ${it.getString("link") ?: "N/A"}"
+
+                    // Store the link value in the global variable
+                    productLink = it.getString("link")
                 }
             }
             .addOnFailureListener { exception ->
@@ -199,7 +210,26 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
 
     private fun setupMatchingAdapter(matchingItems: List<ImageItem>) {
         matchingRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        matchingRecyclerView.adapter = MediumImageAdapter(this, matchingItems, "MediumImageAdapter",userdocumentId)
+        matchingRecyclerView.adapter = MediumImageAdapter(
+            this,
+            matchingItems,
+            "ImageDetailActivity",
+            userdocumentId
+        ) { itemToDelete ->
+            // Handle delete action
+            db.collection(itemToDelete.collectionName)
+                .document(itemToDelete.documentId)
+                .delete()
+                .addOnSuccessListener {
+                    // Remove the item from the list and notify the adapter
+                    (matchingItems as MutableList).remove(itemToDelete)
+                    matchingRecyclerView.adapter?.notifyDataSetChanged()
+                    Toast.makeText(this, "Item deleted successfully", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { exception ->
+                    Toast.makeText(this, "Error deleting item: ${exception.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
     }
 
     private fun showToast(message: String) {

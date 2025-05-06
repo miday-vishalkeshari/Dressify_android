@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.dressify.FullScreenImageActivity
 import com.example.dressify.ImageDetailActivity
 import com.example.dressify.models.ImageItem
 import com.example.dressify.R
@@ -16,7 +17,8 @@ class MediumImageAdapter(
     private val context: Context,
     private val imageItemList: List<ImageItem>,
     private val activityType: String,//this is for name from where this is called
-    private val userdocumentId: String
+    private val userdocumentId: String,
+    private val onDeleteClick: (ImageItem) -> Unit
 ) : RecyclerView.Adapter<MediumImageAdapter.ImageViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
@@ -39,11 +41,18 @@ class MediumImageAdapter(
         // Show or hide delete icon based on activityType
         if (activityType == "WishlistActivity") {
             holder.deleteIcon.visibility = View.VISIBLE
+            holder.deleteIcon.setOnClickListener {
+                onDeleteClick(currentItem) // Trigger callback
+            }
+
+            holder.itemView.setOnClickListener {
+                val intent = Intent(context, FullScreenImageActivity::class.java)
+                intent.putExtra("docId", currentItem.documentId)
+                intent.putExtra("collectionName", currentItem.collectionName)
+                context.startActivity(intent)
+            }
         } else {
             holder.deleteIcon.visibility = View.GONE
-        }
-
-        if (activityType != "WishlistActivity") {
             holder.itemView.setOnClickListener {
                 val intent = Intent(context, ImageDetailActivity::class.java)
                 intent.putExtra("imageList", currentItem.imageUrl)
