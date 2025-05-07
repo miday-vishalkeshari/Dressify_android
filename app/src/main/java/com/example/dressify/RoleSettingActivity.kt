@@ -170,10 +170,30 @@ class RoleSettingActivity : AppCompatActivity() {
         // Add the new user to the array
         userRef.update("names", FieldValue.arrayUnion(newUserDetails))
             .addOnSuccessListener {
+                updateUsersCount()
                 Toast.makeText(this, "New user added successfully", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { exception ->
                 Toast.makeText(this, "Failed to add new user: ${exception.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun updateUsersCount() {
+        if (userdocumentId.isNullOrEmpty()) {
+            Log.e("RoleSettingActivity", "Document ID is null or empty")
+            return
+        }
+
+        val userRef = FirebaseFirestore.getInstance()
+            .collection("Dressify_users")
+            .document(userdocumentId!!)
+
+        userRef.update("users_count", FieldValue.increment(1))
+            .addOnSuccessListener {
+                Log.d("RoleSettingActivity", "users_count incremented successfully")
+            }
+            .addOnFailureListener { exception ->
+                Log.e("RoleSettingActivity", "Failed to increment users_count: ${exception.message}")
             }
     }
 

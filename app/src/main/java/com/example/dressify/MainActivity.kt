@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
     private val pageSize = 2  // number of images to load at a time
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private var userdocumentId: String? = null
-
+    private var globalUsersCount = 0
 
 
 
@@ -133,6 +133,27 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun monitorUsersCount() {
+        val userRef = FirebaseFirestore.getInstance()
+            .collection("Dressify_users")
+            .document(userdocumentId!!)
+
+        userRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                Log.e("FirestoreListener", "Error listening to users_count: ${error.message}")
+                return@addSnapshotListener
+            }
+
+            if (snapshot != null && snapshot.exists()) {
+                val usersCount = snapshot.getLong("users_count")?.toInt() ?: 0
+                if (usersCount != globalUsersCount) {
+                    globalUsersCount=usersCount
+                    setupUserDropdown()
+                }
+            }
+        }
+    }
+
     private fun setupUserDropdown() {
         val userDropdown: Spinner = findViewById(R.id.userDropdown)
 
@@ -208,6 +229,8 @@ class MainActivity : AppCompatActivity() {
                         intent.putExtra("userdocumentId", userdocumentId)
                         Log.d("MainActivity", "Passing documentId: $userdocumentId")
                         startActivity(intent)
+
+                        monitorUsersCount()
                     }
                     else{
                         userDropdown.setSelection(position)
@@ -240,6 +263,9 @@ class MainActivity : AppCompatActivity() {
                 if (document.exists()) {
                     val roles = mutableListOf<UserRole>()
                     val namesList = document.get("names") as? List<Map<String, Any>>
+                    globalUsersCount = namesList?.size ?: 0
+
+
                     namesList?.forEach { nameDetails ->
                         var name = nameDetails["name"] as? String
                         val id = nameDetails["id"] as? String
