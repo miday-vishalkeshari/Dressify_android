@@ -31,23 +31,25 @@ class MainActivity : AppCompatActivity() {
     private val selectedDressTypes = mutableListOf<String>()
     private var lastLoadTime = 0L
     private val allDressTypes = arrayOf(
-        "Tshirts",
-        "Casual_Shirts",
-        "Formal_Shirts",
-        "Jeans",
-        "Track_Pants",
-        "Shorts",
-        "Trousers",
-        "Pants"
+        "tshirts",
+        "jeans"
     )
     private var isBackPressedOnce = false
-
     private val lastVisibleDocuments = mutableMapOf<String, DocumentSnapshot?>()
     private var isLoading = false
     private val pageSize = 2  // number of images to load at a time
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private var userdocumentId: String? = null
     private var globalUsersCount = 0
+
+    private var gender: String? = null
+    private var age: Int? = null
+    private var skinColour: String? = null
+    private var skinType: String? = null
+    private var height: Int? = null
+
+
+    private var skinColourRecommendations: List<String> = emptyList()
 
 
 
@@ -237,6 +239,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     else{
                         userDropdown.setSelection(position)
+                        fetchUserDetails(selectedRole.id)
                         Toast.makeText(this@MainActivity, "Selected: ${selectedRole.name}", Toast.LENGTH_SHORT).show()
                     }
 
@@ -246,6 +249,56 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+
+
+    private fun getRecommendationsForSkinColour(skinColour: String?) {
+        skinColourRecommendations = emptyList() // Clear the list
+        skinColourRecommendations = when (skinColour?.lowercase()) {
+            "fair" -> listOf("blue")
+            "medium" -> listOf("black")
+            "dark" -> listOf("red")
+            else -> listOf("blue")
+        }
+        fetchImageUrlsFromFirestore()
+    }
+
+    private fun fetchUserDetails(userId: String) {
+        db.collection("Dressify_users")
+            .document(userdocumentId!!)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val namesList = document.get("names") as? List<Map<String, Any>>
+                    val userDetails = namesList?.find { it["id"] == userId }
+
+                    if (userDetails != null) {
+                        gender = userDetails["gender"] as? String
+                        age = userDetails["age"] as? Int
+                        skinColour = userDetails["skinColour"] as? String
+                        skinType = userDetails["skinType"] as? String
+                        height = userDetails["height"] as? Int
+
+                        Log.d("FilterColors", "skin color: $skinColour")
+
+                        // Call getRecommendationsForSkinColour with the fetched skinColour
+                        getRecommendationsForSkinColour(skinColour)
+
+
+                        // Display or use the fetched details
+                        Log.d("MainActivity", "Gender: $gender, Age: $age, Skin Colour: $skinColour, Skin Type: $skinType, Height: $height")
+                        Toast.makeText(this, "Details fetched for ${userDetails["name"]}", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Log.w("MainActivity", "User details not found for ID: $userId")
+                    }
+                } else {
+                    Log.w("MainActivity", "Document not found for ID: $userdocumentId")
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("MainActivity", "Error fetching user details: ${exception.message}")
+            }
     }
 
 
@@ -274,8 +327,6 @@ class MainActivity : AppCompatActivity() {
                         val id = nameDetails["id"] as? String
                         val emoji = nameDetails["emoji"] as? String
 
-                        Log.d("MainActivity", "Fetched name: $name")
-                        Log.d("MainActivity", "Fetched id: $id")
 
                         if (name.isNullOrEmpty()) {
                             name ="User"
@@ -300,7 +351,6 @@ class MainActivity : AppCompatActivity() {
 
 
 
-
     private fun refreshContent() {
         swipeRefreshLayout.isRefreshing = true
 
@@ -317,59 +367,87 @@ class MainActivity : AppCompatActivity() {
 
     private fun fetchImageUrlsFromFirestore() {
         imageList.clear()
-        lastVisibleDocuments.clear()  // Reset for fresh fetch
-        val typesToFetch =
-            if (selectedDressTypes.isEmpty()) allDressTypes.toList() else selectedDressTypes
+        recyclerView.adapter?.notifyDataSetChanged()
+        lastVisibleDocuments.clear() // Reset for fresh fetch
+        val typesToFetch = if (selectedDressTypes.isEmpty()) allDressTypes.toList() else selectedDressTypes
         var collectionsFetched = 0
 
         for (type in typesToFetch) {
-            val collectionName = type.lowercase()
-            db.collection(collectionName).limit(pageSize.toLong()).get()
-                .addOnSuccessListener { documents ->
-                    if (documents.isEmpty) {
+            val documentPath = "Dressify_styles/$type"
+            db.document(documentPath).get()
+                .addOnSuccessListener { document ->
+                    if (!document.exists()) {
                         collectionsFetched++
                         if (collectionsFetched == typesToFetch.size) {
                             setupAdapter()
-                            swipeRefreshLayout.isRefreshing = false  // <-- Stop loader here
+                            swipeRefreshLayout.isRefreshing = false // Stop loader here
                         }
                         return@addOnSuccessListener
                     }
 
-                    for (document in documents) {
-                        val imageUrls = document.get("image_urls") as? List<*>
-                        val imageUrl = imageUrls?.getOrNull(0) as? String
-
-                        if (imageUrl != null) {
-                            imageList.add(ImageItem(imageUrl, collectionName, document.id))
+                    val subcollectionNames = document.get("collections_list") as? List<String> ?: emptyList()
+                    for (color in subcollectionNames) {
+                        if (skinColourRecommendations.isNotEmpty() && color !in skinColourRecommendations) {
+                            Log.d("FilterColors", "Skipping color: $color")
+                            continue // Skip colors not in recommendations
                         }
+                        Log.d("FilterColors", "Processing color: $color")
 
+                        db.collection("$documentPath/$color").get()
+                            .addOnSuccessListener { documents ->
+                                if (documents.isEmpty) {
+                                    collectionsFetched++
+                                    if (collectionsFetched == typesToFetch.size) {
+                                        setupAdapter()
+                                        swipeRefreshLayout.isRefreshing = false // Stop loader here
+                                    }
+                                    return@addOnSuccessListener
+                                }
 
-                    }
+                                for (document in documents) {
+                                    val imageUrls = document.get("image_urls") as? List<*>
+                                    val imageUrl = imageUrls?.getOrNull(0) as? String
 
-                    lastVisibleDocuments[collectionName] = documents.documents.last()
+                                    if (imageUrl != null) {
+                                        imageList.add(ImageItem(imageUrl, type, color, document.id))
+                                    }
+                                }
 
-                    collectionsFetched++
-                    if (collectionsFetched == typesToFetch.size) {
-                        setupAdapter()
-                        swipeRefreshLayout.isRefreshing = false  // <-- Stop loader here
+                                recyclerView.adapter?.notifyDataSetChanged()
+                                lastVisibleDocuments["$type/$color"] = documents.documents.last()
+
+                                collectionsFetched++
+                                if (collectionsFetched == typesToFetch.size) {
+                                    setupAdapter()
+                                    swipeRefreshLayout.isRefreshing = false // Stop loader here
+                                }
+                            }.addOnFailureListener { exception ->
+                                Log.e(
+                                    "FetchImages",
+                                    "Error fetching from $type/$color: ${exception.message}",
+                                    exception
+                                )
+                                collectionsFetched++
+                                if (collectionsFetched == typesToFetch.size) {
+                                    setupAdapter()
+                                    swipeRefreshLayout.isRefreshing = false // Stop loader here
+                                }
+                            }
                     }
                 }.addOnFailureListener { exception ->
                     Log.e(
                         "FetchImages",
-                        "Error fetching from $collectionName: ${exception.message}",
+                        "Error fetching document $documentPath: ${exception.message}",
                         exception
                     )
                     collectionsFetched++
                     if (collectionsFetched == typesToFetch.size) {
                         setupAdapter()
-                        swipeRefreshLayout.isRefreshing = false  // <-- Stop loader here
+                        swipeRefreshLayout.isRefreshing = false // Stop loader here
                     }
                 }
         }
     }
-
-
-
 
     private fun setupFilter() {
 
@@ -466,18 +544,18 @@ class MainActivity : AppCompatActivity() {
             userdocumentId.toString()
         ) { itemToDelete ->
             // Handle delete action
-            db.collection(itemToDelete.collectionName)
-                .document(itemToDelete.documentId)
-                .delete()
-                .addOnSuccessListener {
-                    // Remove the item from the list and notify the adapter
-                    imageList.remove(itemToDelete)
-                    recyclerView.adapter?.notifyDataSetChanged()
-                    Toast.makeText(this, "Item deleted successfully", Toast.LENGTH_SHORT).show()
-                }
-                .addOnFailureListener { exception ->
-                    Toast.makeText(this, "Error deleting item: ${exception.message}", Toast.LENGTH_SHORT).show()
-                }
+//            db.collection(itemToDelete.collectionName)
+//                .document(itemToDelete.documentId)
+//                .delete()
+//                .addOnSuccessListener {
+//                    // Remove the item from the list and notify the adapter
+//                    imageList.remove(itemToDelete)
+//                    recyclerView.adapter?.notifyDataSetChanged()
+//                    Toast.makeText(this, "Item deleted successfully", Toast.LENGTH_SHORT).show()
+//                }
+//                .addOnFailureListener { exception ->
+//                    Toast.makeText(this, "Error deleting item: ${exception.message}", Toast.LENGTH_SHORT).show()
+//                }
         }
         recyclerView.adapter = mediumImageAdapter
 
@@ -523,6 +601,7 @@ class MainActivity : AppCompatActivity() {
 
         for (type in typesToFetch) {
             val collectionName = type.lowercase()
+            val styleColour = "blue"
             val lastVisible = lastVisibleDocuments[collectionName]
 
             if (lastVisible == null) {
@@ -533,7 +612,7 @@ class MainActivity : AppCompatActivity() {
                 continue
             }
 
-            db.collection(collectionName).startAfter(lastVisible).limit(pageSize.toLong()).get()
+            db.collection("Dressify_styles").document(collectionName).collection(styleColour).startAfter(lastVisible).limit(pageSize.toLong()).get()
                 .addOnSuccessListener { documents ->
                     Log.d("LoadMore", "Fetched more images from $collectionName")
 
@@ -545,7 +624,7 @@ class MainActivity : AppCompatActivity() {
                             val imageUrls = document.get("image_urls") as? List<*>
                             val imageUrl = imageUrls?.getOrNull(0) as? String
                             if (imageUrl != null) {
-                                newItems.add(ImageItem(imageUrl, collectionName, document.id))
+                                newItems.add(ImageItem(imageUrl, collectionName,styleColour, document.id))
                             }
                         }
 

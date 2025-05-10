@@ -46,18 +46,19 @@ class MediumImageAdapter(
             }
 
             holder.itemView.setOnClickListener {
-                val intent = Intent(context, FullScreenImageActivity::class.java)
-                intent.putExtra("docId", currentItem.documentId)
-                intent.putExtra("collectionName", currentItem.collectionName)
-                context.startActivity(intent)
+//                val intent = Intent(context, FullScreenImageActivity::class.java)
+//                intent.putExtra("docId", currentItem.documentId)
+//                intent.putExtra("collectionName", currentItem.collectionName)
+//                context.startActivity(intent)
             }
         } else {
             holder.deleteIcon.visibility = View.GONE
             holder.itemView.setOnClickListener {
                 val intent = Intent(context, ImageDetailActivity::class.java)
-                intent.putExtra("imageList", currentItem.imageUrl)
-                intent.putExtra("collectionName", currentItem.collectionName)
-                intent.putExtra("docId", currentItem.documentId)
+                intent.putExtra("imageUrl", currentItem.imageUrl)///////////that one image
+                intent.putExtra("styleType", currentItem.styleType) /// style type
+                intent.putExtra("styleColour", currentItem.styleColour) //product doc
+                intent.putExtra("productDocId", currentItem.productDocId) //product doc
                 intent.putExtra("userdocumentId", userdocumentId)
                 context.startActivity(intent)
             }

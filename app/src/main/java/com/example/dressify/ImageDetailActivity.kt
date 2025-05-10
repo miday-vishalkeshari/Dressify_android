@@ -16,6 +16,7 @@ import com.example.dressify.models.ImageItem
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlin.toString
 
 class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionListener {
 
@@ -25,6 +26,7 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
     private lateinit var imageDescription: TextView
     private lateinit var db: FirebaseFirestore
     private lateinit var collectionName: String
+    private lateinit var styleColour: String
     private lateinit var docId: String
     private lateinit var userdocumentId: String
     private var productLink: String? = null
@@ -40,13 +42,14 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
         initializeViews()
         initializeFirestore()
 
-        val clickedImageUrl = intent.getStringExtra("imageList")
-        collectionName = intent.getStringExtra("collectionName") ?: "tshirts"
-        docId = intent.getStringExtra("docId").toString()
+        val clickedImageUrl = intent.getStringExtra("imageUrl")
+        collectionName = intent.getStringExtra("styleType") ?: "tshirts"
+        styleColour = intent.getStringExtra("styleColour").toString()
+        docId = intent.getStringExtra("productDocId").toString()
         userdocumentId = intent.getStringExtra("userdocumentId").toString()
 
-        setupFullImageRecyclerView(clickedImageUrl, docId, collectionName)
-        fetchImageDetails(docId, collectionName)
+        setupFullImageRecyclerView(clickedImageUrl, docId, collectionName)//abhi ke liye esko farak nhi padta
+        fetchImageDetails(collectionName,styleColour,docId)///done
         setHardcodedDescription()
         fetchMatchingImages(collectionName)
     }
@@ -138,13 +141,15 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
 
 
 
-    private fun fetchImageDetails(docId: String?, collectionName: String) {
-        if (docId == null) {
+    private fun fetchImageDetails(styleType: String,styleColour: String?, productDocId: String?) {
+        if (productDocId == null) {
             showToast("Invalid image reference")
             return
         }
 
-        db.collection(collectionName).document(docId).get()
+        db.collection("Dressify_styles").document(styleType).collection(styleColour.toString()).document(
+            productDocId.toString()
+        ).get()
             .addOnSuccessListener { document ->
                 document?.let {
                     imageTitle.text = it.getString("brand") ?: "No Title"
@@ -173,12 +178,13 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
         val oppositeCollection = getOppositeCollection(collectionName) ?: return
         val matchingList = mutableListOf<ImageItem>()
 
-        db.collection(oppositeCollection).get()
+
+        db.collection("Dressify_styles").document(collectionName).collection(styleColour.toString()).get()
             .addOnSuccessListener { documents ->
                 documents.forEach { document ->
                     val imageUrl = (document.get("image_urls") as? List<*>)?.getOrNull(0) as? String
                     imageUrl?.let {
-                        matchingList.add(ImageItem(it, oppositeCollection, document.id))
+                        matchingList.add(ImageItem(it, oppositeCollection,styleColour, document.id))
                     }
                 }
                 setupMatchingAdapter(matchingList)
@@ -215,18 +221,18 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
             userdocumentId
         ) { itemToDelete ->
             // Handle delete action
-            db.collection(itemToDelete.collectionName)
-                .document(itemToDelete.documentId)
-                .delete()
-                .addOnSuccessListener {
-                    // Remove the item from the list and notify the adapter
-                    (matchingItems as MutableList).remove(itemToDelete)
-                    matchingRecyclerView.adapter?.notifyDataSetChanged()
-                    Toast.makeText(this, "Item deleted successfully", Toast.LENGTH_SHORT).show()
-                }
-                .addOnFailureListener { exception ->
-                    Toast.makeText(this, "Error deleting item: ${exception.message}", Toast.LENGTH_SHORT).show()
-                }
+//            db.collection(itemToDelete.collectionName)
+//                .document(itemToDelete.documentId)
+//                .delete()
+//                .addOnSuccessListener {
+//                    // Remove the item from the list and notify the adapter
+//                    (matchingItems as MutableList).remove(itemToDelete)
+//                    matchingRecyclerView.adapter?.notifyDataSetChanged()
+//                    Toast.makeText(this, "Item deleted successfully", Toast.LENGTH_SHORT).show()
+//                }
+//                .addOnFailureListener { exception ->
+//                    Toast.makeText(this, "Error deleting item: ${exception.message}", Toast.LENGTH_SHORT).show()
+//                }
         }
     }
 
