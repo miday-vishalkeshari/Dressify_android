@@ -191,6 +191,11 @@ class RoleSettingActivity : AppCompatActivity() {
         userRef.update("users_count", FieldValue.increment(1))
             .addOnSuccessListener {
                 Log.d("RoleSettingActivity", "users_count incremented successfully")
+
+                // Navigate to MainActivity
+                val intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
+                finish() // Close the current activity
             }
             .addOnFailureListener { exception ->
                 Log.e("RoleSettingActivity", "Failed to increment users_count: ${exception.message}")
@@ -342,6 +347,11 @@ class RoleSettingActivity : AppCompatActivity() {
                         userRef.update("names", updatedList)
                             .addOnSuccessListener {
                                 Toast.makeText(this, "Details updated successfully", Toast.LENGTH_SHORT).show()
+
+                                // Navigate to MainActivity
+                                val intent = Intent(this, MainActivity::class.java)
+                                startActivity(intent)
+                                finish() // Close the current activity
                             }
                             .addOnFailureListener { exception ->
                                 Toast.makeText(this, "Failed to update details: ${exception.message}", Toast.LENGTH_SHORT).show()
@@ -357,7 +367,6 @@ class RoleSettingActivity : AppCompatActivity() {
                 Toast.makeText(this, "Error fetching document: ${exception.message}", Toast.LENGTH_SHORT).show()
             }
     }
-
 
     private fun logout() {
         // Sign out from Firebase
@@ -480,7 +489,7 @@ class RoleSettingActivity : AppCompatActivity() {
         if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             openCamera()
         } else {
-            Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Camera permission denied. If you have denied it multiple times, please clear app data to allow access.", Toast.LENGTH_SHORT).show()
         }
     }
 

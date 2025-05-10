@@ -76,6 +76,8 @@ class MainActivity : AppCompatActivity() {
         // Fetch image URLs from Firestore
         fetchImageUrlsFromFirestore()
 
+        monitorUsersCount()
+
         // Initialize dropdown row view
         val dropdownRow = findViewById<View>(R.id.dropdownRow)
 
@@ -140,14 +142,15 @@ class MainActivity : AppCompatActivity() {
 
         userRef.addSnapshotListener { snapshot, error ->
             if (error != null) {
-                Log.e("FirestoreListener", "Error listening to users_count: ${error.message}")
+                Log.e("FirestoreListener", "Error listening to names array: ${error.message}")
                 return@addSnapshotListener
             }
 
             if (snapshot != null && snapshot.exists()) {
-                val usersCount = snapshot.getLong("users_count")?.toInt() ?: 0
+                val namesList = snapshot.get("names") as? List<*>
+                val usersCount = namesList?.size ?: 0
                 if (usersCount != globalUsersCount) {
-                    globalUsersCount=usersCount
+                    globalUsersCount = usersCount
                     setupUserDropdown()
                 }
             }

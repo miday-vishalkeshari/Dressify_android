@@ -16,6 +16,10 @@
         android:theme="@style/Theme.Dressify"
         tools:targetApi="31">
         <activity
+            android:name=".FillUserDetailsActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false" />
+        <activity
             android:name=".WishlistActivity"
             android:exported="false" />
         <activity

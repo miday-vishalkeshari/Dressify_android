@@ -113,7 +113,7 @@ class LoginActivity : AppCompatActivity() {
             .addOnSuccessListener { querySnapshot ->
                 if (querySnapshot.isEmpty) {
                     // User doesn't exist — create new document
-                    createUserDocument(email, name)
+                    navigateToFillUserDetails(email, name)
                 } else {
                     // User exists, get their document ID
                     val documentId = querySnapshot.documents.first().id
@@ -129,40 +129,14 @@ class LoginActivity : AppCompatActivity() {
     }
 
 
-    private fun createUserDocument(email: String, name: String) {
-        val usersCollection = db.collection("Dressify_users")
 
-        // Generate a unique ID based on the current time
-        val uniqueId = System.currentTimeMillis().toString()
-
-        val nameDetails = hashMapOf(
-            "id" to uniqueId,
-            "name" to name,
-            "age" to "",
-            "gender" to "",
-            "emoji" to "",
-            "skinColour" to "",
-            "skinType" to "",
-            "height" to "",
-        )
-
-        val newUser = hashMapOf(
-            "email" to email,
-            "names" to listOf(nameDetails)
-        )
-
-        usersCollection.add(newUser)
-            .addOnSuccessListener { documentReference ->
-                Log.d("LoginActivity", "New user document created with ID: ${documentReference.id}")
-
-                // Pass new documentId to MainActivity
-                navigateToMainActivity(documentReference.id)
-            }
-            .addOnFailureListener { exception ->
-                Log.e("LoginActivity", "Error creating user document: ${exception.message}")
-            }
+    private fun navigateToFillUserDetails(email: String, name: String) {
+        val intent = Intent(this, FillUserDetailsActivity::class.java)
+        intent.putExtra("email", email)
+        intent.putExtra("name", name)
+        startActivity(intent)
+        finish()
     }
-
 
 
 
