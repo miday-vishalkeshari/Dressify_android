@@ -4,7 +4,9 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -25,9 +27,9 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
     private lateinit var imageTitle: TextView
     private lateinit var imageDescription: TextView
     private lateinit var db: FirebaseFirestore
-    private lateinit var collectionName: String
+    private lateinit var styleType: String
     private lateinit var styleColour: String
-    private lateinit var docId: String
+    private lateinit var productDocId: String
     private lateinit var userdocumentId: String
     private var productLink: String? = null
 
@@ -43,15 +45,27 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
         initializeFirestore()
 
         val clickedImageUrl = intent.getStringExtra("imageUrl")
-        collectionName = intent.getStringExtra("styleType") ?: "tshirts"
+        styleType = intent.getStringExtra("styleType") ?: "tshirts"
         styleColour = intent.getStringExtra("styleColour").toString()
-        docId = intent.getStringExtra("productDocId").toString()
+        productDocId = intent.getStringExtra("productDocId").toString()
         userdocumentId = intent.getStringExtra("userdocumentId").toString()
 
-        setupFullImageRecyclerView(clickedImageUrl, docId, collectionName)//abhi ke liye esko farak nhi padta
-        fetchImageDetails(collectionName,styleColour,docId)///done
+        setupFullImageRecyclerView(clickedImageUrl, productDocId, styleType)//abhi ke liye esko farak nhi padta
+        fetchImageDetails(styleType,styleColour,productDocId)///done
         setHardcodedDescription()
-        fetchMatchingImages(collectionName)
+        fetchMatchingImages(styleType)
+
+
+        val titleSection = findViewById<LinearLayout>(R.id.titleSection)
+        val imageDescription = findViewById<TextView>(R.id.imageDescription)
+
+        titleSection.setOnClickListener {
+            if (imageDescription.visibility == View.GONE) {
+                imageDescription.visibility = View.VISIBLE
+            } else {
+                imageDescription.visibility = View.GONE
+            }
+        }
     }
 
     private fun initializeViews() {
@@ -75,10 +89,11 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
         db = FirebaseFirestore.getInstance()
     }
 
-    override fun onAddToWishlist(docId: String, collectionName: String, isAdded: Boolean) {
+    override fun onAddToWishlist(styleType: String, styleColour: String, productDocId: String, isAdded: Boolean) {
         val wishlistItem = mapOf(
-            "dress_type" to collectionName,
-            "cloth_item" to docId
+            "styleType" to styleType,
+            "styleColour" to styleColour,
+            "productDocId" to productDocId
         )
 
         if (isAdded) {
@@ -122,7 +137,7 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
         }
     }
 
-    override fun onLinkClicked(docId: String, collectionName: String) {
+    override fun onLinkClicked(styleType: String,styleColour: String,productDocId: String) {
         productLink?.let { link ->
             val browserIntent = Intent(Intent.ACTION_VIEW).apply {
                 data = android.net.Uri.parse(link)
@@ -133,10 +148,10 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
 
 
 
-    private fun setupFullImageRecyclerView(imageUrl: String?, docId: String?, collectionName: String) {
+    private fun setupFullImageRecyclerView(imageUrl: String?, docId: String?, styleType: String) {
         val fullImageList = arrayListOf<String>().apply { imageUrl?.let { add(it) } }
         fullImageRecyclerView.layoutManager = LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)
-        fullImageRecyclerView.adapter = BigImageAdapter(this, fullImageList, docId.orEmpty(), collectionName, this)
+        fullImageRecyclerView.adapter = BigImageAdapter(this, fullImageList, styleType, styleColour,productDocId, this)
     }
 
 
@@ -174,12 +189,15 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
         """.trimIndent()
     }
 
-    private fun fetchMatchingImages(collectionName: String) {
-        val oppositeCollection = getOppositeCollection(collectionName) ?: return
+    private fun fetchMatchingImages(styleType: String) {
+        val oppositeCollection = getOppositeCollection(styleType) ?: "tshirts"
         val matchingList = mutableListOf<ImageItem>()
 
+        Log.d("fetchMatchingImages after ", "$oppositeCollection ")
+        Log.d("fetchMatchingImages colour ", "$styleColour ")
 
-        db.collection("Dressify_styles").document(collectionName).collection(styleColour.toString()).get()
+
+        db.collection("Dressify_styles").document(oppositeCollection).collection(styleColour.toString()).get()// here if we have black colour then we wont get any tshirt kyu ki black tshirt abhi nhi hai hmare pas db par
             .addOnSuccessListener { documents ->
                 documents.forEach { document ->
                     val imageUrl = (document.get("image_urls") as? List<*>)?.getOrNull(0) as? String
@@ -195,9 +213,8 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
             }
     }
 
-    private fun getOppositeCollection(collectionName: String): String? {
-        return when (collectionName) {
-            "pants" -> "formal_shirts"
+    private fun getOppositeCollection(styleType: String): String? {
+        return when (styleType) {
             "tshirts" -> "jeans"
             "jeans" -> "tshirts"
             "casual_shirts" -> "track_pants"
@@ -206,7 +223,7 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
             "trousers" -> "formal_shirts"
             "shorts" -> "casual_shirts"
             else -> {
-                logWarning("Unknown collection name: $collectionName")
+                logWarning("Unknown collection name: $styleType")
                 null
             }
         }
@@ -221,18 +238,18 @@ class ImageDetailActivity : AppCompatActivity(), BigImageAdapter.OnItemActionLis
             userdocumentId
         ) { itemToDelete ->
             // Handle delete action
-//            db.collection(itemToDelete.collectionName)
-//                .document(itemToDelete.documentId)
-//                .delete()
-//                .addOnSuccessListener {
-//                    // Remove the item from the list and notify the adapter
-//                    (matchingItems as MutableList).remove(itemToDelete)
-//                    matchingRecyclerView.adapter?.notifyDataSetChanged()
-//                    Toast.makeText(this, "Item deleted successfully", Toast.LENGTH_SHORT).show()
-//                }
-//                .addOnFailureListener { exception ->
-//                    Toast.makeText(this, "Error deleting item: ${exception.message}", Toast.LENGTH_SHORT).show()
-//                }
+            db.collection("Dressify_styles").document(itemToDelete.styleType).collection(itemToDelete.styleColour)
+                .document(itemToDelete.productDocId)
+                .delete()
+                .addOnSuccessListener {
+                    // Remove the item from the list and notify the adapter
+                    (matchingItems as MutableList).remove(itemToDelete)
+                    matchingRecyclerView.adapter?.notifyDataSetChanged()
+                    Toast.makeText(this, "Item deleted successfully", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { exception ->
+                    Toast.makeText(this, "Error deleting item: ${exception.message}", Toast.LENGTH_SHORT).show()
+                }
         }
     }
 

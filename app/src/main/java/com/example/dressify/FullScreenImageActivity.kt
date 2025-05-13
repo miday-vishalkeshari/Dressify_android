@@ -31,24 +31,27 @@ class FullScreenImageActivity : AppCompatActivity() {
     }
 
     private fun fetchAndDisplayImages() {
-        val docId = intent.getStringExtra("docId")
-        val collectionName = intent.getStringExtra("collectionName")
+        val styleType = intent.getStringExtra("styleType")
+        val styleColour = intent.getStringExtra("styleColour")
+        val productDocId = intent.getStringExtra("productDocId")
 
-        if (docId.isNullOrEmpty() || collectionName.isNullOrEmpty()) {
+
+
+        if (productDocId.isNullOrEmpty() || styleType.isNullOrEmpty()|| styleColour.isNullOrEmpty()) {
             showToast("Invalid data received")
             return
         }
 
-        Log.d("FullScreenImageActivity", "docId: $docId, collectionName: $collectionName")
-        fetchImageUrls(collectionName, docId)
+        Log.d("FullScreenImageActivity", "styleType: $styleType, styleColour: $styleColour, productDocId: $productDocId")
+        fetchImageUrls(styleType.toString(), styleColour.toString(), productDocId.toString())
     }
 
-    private fun fetchImageUrls(collectionName: String, docId: String) {
-        db.collection(collectionName).document(docId).get()
+    private fun fetchImageUrls(styleType: String,styleColour: String, productDocId: String) {
+        db.collection("Dressify_styles").document(styleType).collection(styleColour).document(productDocId).get()
             .addOnSuccessListener { documentSnapshot ->
                 if (documentSnapshot.exists()) {
                     val imageUrls = documentSnapshot.get("image_urls") as? List<String> ?: emptyList()
-                    setupAdapter(imageUrls, docId, collectionName)
+                    setupAdapter(imageUrls)
                 } else {
                     showToast("Document not found")
                 }
@@ -58,7 +61,7 @@ class FullScreenImageActivity : AppCompatActivity() {
             }
     }
 
-    private fun setupAdapter(imageUrls: List<String>, docId: String, collectionName: String) {
+    private fun setupAdapter(imageUrls: List<String>) {
         fullScreenRecyclerView.adapter = FullImageAdapter(this, imageUrls)
     }
 

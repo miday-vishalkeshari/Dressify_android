@@ -15,16 +15,17 @@ import com.example.dressify.R
 class BigImageAdapter(
     private val context: Context,
     private val imageItemList: List<String>,
-    private val docId: String,
-    private val collectionName: String,
+    private val styleType: String,
+    private val styleColour: String,
+    private val productDocId: String,
     private val listener: OnItemActionListener
 ) : RecyclerView.Adapter<BigImageAdapter.ImageViewHolder>() {
 
     private var isAddedToWishlist = false
 
     interface OnItemActionListener {
-        fun onAddToWishlist(docId: String, collectionName: String, isAdded: Boolean)
-        fun onLinkClicked(docId: String, collectionName: String)
+        fun onAddToWishlist(styleType: String, styleColour: String, productDocId: String, isAdded: Boolean)
+        fun onLinkClicked(styleType: String,styleColour: String, productDocId: String)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
@@ -41,8 +42,9 @@ class BigImageAdapter(
         holder.imageView.setOnClickListener {
             val intent = Intent(context, FullScreenImageActivity::class.java)
             intent.putExtra("image_url", currentItem)
-            intent.putExtra("docId", docId)
-            intent.putExtra("collectionName", collectionName)
+            intent.putExtra("styleType", styleType)
+            intent.putExtra("styleColour", styleColour)
+            intent.putExtra("productDocId", productDocId)
             context.startActivity(intent)
         }
 
@@ -51,11 +53,11 @@ class BigImageAdapter(
             holder.addToWishlistIcon.setImageResource(
                 if (isAddedToWishlist) R.drawable.ic_liked else R.drawable.ic_unliked
             )
-            listener.onAddToWishlist(docId, collectionName, isAddedToWishlist)
+            listener.onAddToWishlist(styleType,styleColour,productDocId, isAddedToWishlist)
         }
 
         holder.linkIcon.setOnClickListener {
-            listener.onLinkClicked(docId, collectionName)
+            listener.onLinkClicked( styleColour,styleColour,productDocId)
         }
     }
 

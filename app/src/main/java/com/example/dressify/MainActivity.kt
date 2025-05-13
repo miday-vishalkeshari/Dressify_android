@@ -257,7 +257,7 @@ class MainActivity : AppCompatActivity() {
         skinColourRecommendations = emptyList() // Clear the list
         skinColourRecommendations = when (skinColour?.lowercase()) {
             "fair" -> listOf("blue")
-            "medium" -> listOf("black")
+            "medium" -> listOf("black","blue")
             "dark" -> listOf("red")
             else -> listOf("blue")
         }
@@ -449,13 +449,66 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val dressTypeMapping = mapOf(
+        "Casual" to listOf(
+            "tshirts",
+            "poloShirts",
+            "casualShirts",
+            "henleys",
+            "hoodies",
+            "casualJackets",
+            "jeans",
+            "chinos",
+            "joggers",
+            "cargoPants",
+            "shorts"
+        ),
+        "Formal" to listOf(
+            "formalShirts",
+            "blazers",
+            "suits",
+            "waistcoats",
+            "turtlenecks",
+            "formalTrousers",
+            "suitPants"
+        ),
+        "Party" to listOf(
+            "partyShirts",
+            "stylishTshirts",
+            "casualBlazers",
+            "leatherJackets",
+            "statementSweaters",
+            "slimFitJeans",
+            "chinos",
+            "leatherPants"
+        ),
+        "Workout" to listOf(
+            "athleticTshirts",
+            "tankTops",
+            "compressionShirts",
+            "sweatshirts",
+            "trackPants",
+            "joggers",
+            "runningShorts",
+            "compressionTights"
+        )
+    )
+
+
+
+    private fun updateSelectedDressTypes(category: String) {
+        selectedDressTypes.clear()
+        dressTypeMapping[category]?.let { selectedDressTypes.addAll(it) }
+    }
+
     private fun setupFilter() {
 
         val moodOptions = arrayOf("Casual", "Formal", "Party", "Workout")
         val selectedMoods = mutableListOf<String>()
 
+        //for style mood
+        // for style mood
         findViewById<TextView>(R.id.dressMoodDropdown).setOnClickListener {
-            // Reflect current selectedMoods into checkedItems before opening dialog
             val checkedItems = BooleanArray(moodOptions.size) { index ->
                 selectedMoods.contains(moodOptions[index])
             }
@@ -474,12 +527,19 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton("OK") { _, _ ->
                     findViewById<TextView>(R.id.dressMoodDropdown).text =
                         selectedMoods.joinToString(", ")
+
+                    // Update selectedDressTypes based on the first selected mood
+                    if (selectedMoods.isNotEmpty()) {
+                        updateSelectedDressTypes(selectedMoods[0]) // Example: Use the first selected mood
+                        println(selectedDressTypes) // Prints the updated list
+                        fetchImageUrlsFromFirestore() // Fetch images based on the updated dress types
+                    }
                 }
                 .show()
         }
 
 
-
+    //for style type
         findViewById<TextView>(R.id.dressTypeDropdown).setOnClickListener {
             val checkedItems = BooleanArray(allDressTypes.size) { index ->
                 selectedDressTypes.contains(allDressTypes[index])

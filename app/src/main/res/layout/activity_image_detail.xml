@@ -19,13 +19,6 @@
             android:layout_height="wrap_content"
             android:background="@drawable/bottom_rounded_corners" />
 
-        <!-- Horizontal Scrollable matching -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/matchingRecyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:overScrollMode="never" />
 
         <!-- Bottom Section for Image Details -->
         <LinearLayout
@@ -36,16 +29,35 @@
             android:background="@drawable/top_rounded_corner"
             android:layout_marginTop="16dp">
 
-            <!-- Title of Image -->
-            <TextView
-                android:id="@+id/imageTitle"
+            <!-- Title Section with Arrow Icon -->
+            <LinearLayout
+                android:id="@+id/titleSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Image Title"
-                android:textSize="18sp"
-                android:textColor="#000000"
-                android:padding="4dp"
-                android:gravity="center"/>
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="4dp">
+
+                <!-- Arrow Icon -->
+                <ImageView
+                    android:id="@+id/arrowIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/arrow_drop_down"
+                    android:contentDescription="Arrow Icon"
+                    android:layout_marginEnd="8dp" />
+
+                <!-- Title of Image -->
+                <TextView
+                    android:id="@+id/imageTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Image Title"
+                    android:textSize="18sp"
+                    android:textColor="#000000"
+                    android:padding="4dp" />
+            </LinearLayout>
 
             <!-- Description of Image -->
             <TextView
@@ -55,9 +67,20 @@
                 android:text="This is a sample description of the image"
                 android:textSize="14sp"
                 android:textColor="#777777"
-                android:padding="4dp"/>
-
+                android:visibility="gone"
+                android:padding="4dp" />
 
         </LinearLayout>
+
+
+        <!-- Horizontal Scrollable matching -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/matchingRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:overScrollMode="never" />
+
+
     </LinearLayout>
 </android.widget.ScrollView>
